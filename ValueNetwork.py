@@ -12,11 +12,11 @@ class ValueNetwork(nn.Module):
         self.softmax = nn.Softmax(dim = -1)
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.criterion = nn.MSELoss()
-    def forward(self,state):
-        state = torch.relu(self.fc1(state))
-        state = torch.relu(self.fc2(state))
-        action_probs = self.fc3(state)
-        action_probs = self.softmax(state)
+    def forward(self,x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        action_probs = self.softmax(x)
         return action_probs
     
     def choose_action(self, state):

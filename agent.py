@@ -28,16 +28,15 @@ class Agent:
         # Implementing epsilon-greedy policy
         if random.randint(0,100) < self.epsilon - round_survived:
             move = random.choice(self.actions)
-            if move == 0:
+            if move == Action.Fight:
                 self.lSelectedActionModel = self.lFightModel
                 self.bSelectedActionModel = self.bFightModel
-            elif move == 1:
+            elif move == Action.Flee:
                 self.lSelectedActionModel = self.lFleeModel
                 self.bSelectedActionModel = self.bFleeModel
             return move.value
         else:
             state0 = torch.tensor(state, dtype = torch.float) #Convert to tensor
-            print("state0: ", state0.shape)
             lFightPrediction = self.lFightModel(state0) #Execute forward function
             bFightPrediction = self.bFightModel(state0)
             lFleePrediction = self.lFleeModel(state0)
@@ -47,7 +46,8 @@ class Agent:
            # Calculate the sum of predictions for fight and flee
             fight_sum = lFightPrediction + bFightPrediction
             flee_sum = lFleePrediction + bFleePrediction
-
+            print("fight_sum: ", fight_sum)
+            print("flee_sum: ", flee_sum)
             # Determine which action has the maximum sum
             if fight_sum > flee_sum:
                 max_name = "Fight"

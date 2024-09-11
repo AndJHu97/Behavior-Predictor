@@ -40,6 +40,7 @@ class ValueNetwork(nn.Module):
             reward_tensor[i, action] = rewards[i] if rewards.dim() == 1 else rewards.item()
         return reward_tensor
     
+    #Could delete actions as parameter
     def learn(self, states, actions, rewards):
         batch_size = len(states)
         states = torch.tensor(states, dtype=torch.float32)
@@ -48,19 +49,15 @@ class ValueNetwork(nn.Module):
         rewards = torch.tensor(rewards, dtype = torch.float)
         
         # Normalize rewards between -1 and 1
-        normalized_rewards = self.normalize_rewards(rewards)
-        print("batch size: ", batch_size)
-        print("Rewards: ", rewards)
-        print("Rewards Size: ", rewards.size())
-        print("Normalized rewards: ", normalized_rewards)
+        #normalized_rewards = self.normalize_rewards(rewards)
+        #print("batch size: ", batch_size)
+        #print("Rewards: ", rewards)
         # Create a tensor with rewards at action positions
-        reward_tensor = self.create_reward_tensor(actions, normalized_rewards, batch_size)
-        print("reward tensors: ", reward_tensor)
-        action_probs = self.forward(states)
-        print("action probs: ", action_probs)
+        action_value = self.forward(states)
+        #print("action value: ", action_value)
         self.optimizer.zero_grad()
         # Calculate loss using MSE between predicted rewards and the reward tensor
-        loss = self.criterion(action_probs, reward_tensor)
+        loss = self.criterion(action_value, rewards)
         
         # Backpropagation and optimization
         self.optimizer.zero_grad()

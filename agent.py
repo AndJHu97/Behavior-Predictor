@@ -67,6 +67,8 @@ class Agent:
     def remember(self, state, action, lReward, bReward, lSelectedActionModel, bSelectedActionModel):
         #append a tuple
         self.memory.append((state, [action], lReward, bReward, lSelectedActionModel, bSelectedActionModel)) 
+
+    #Not using this anymore because not really representative of human learning
     def train_long_memory(self): #train with whole batch
         if len(self.memory) > BATCH_SIZE: #If above the batch size, randomly grabs samples used in training iteration
             mini_sample = random.sample(self.memory, BATCH_SIZE) # randomly samples tuples
@@ -74,17 +76,27 @@ class Agent:
             mini_sample = self.memory
 
         #unzip will give it batchsize
-        states, actions, lRewards, bReward, lModel, bModel = zip(*mini_sample) #unzips
-        lLoss = lModel.learn(states, actions, lRewards)
-        bLoss = bModel.learn(states, actions, bReward)
+        states, actions, lRewards, bRewards, lModels, bModels = zip(*mini_sample)
+         # Check what lModels and bModels actually contain
+        print(type(lModels[0]))  # Should be <class 'ValueNetwork'>
+        print(type(bModels[0]))  # Should be <class 'ValueNetwork'>
+
+        # Assuming lModels and bModels are lists of ValueNetwork instances
+        # This doesn't work because it is training all the actions for all models. Need to filter out but currently not using long term training
+        lLoss = sum(model.learn(states, actions, lRewards) for model in lModels)
+        bLoss = sum(model.learn(states, actions, bRewards) for model in bModels)
         return [lLoss, bLoss]
         #for state, action, reward, nexrt_state, done in mini_sample:
         #    self.trainer.train_step(state, action, reward, next_state, done)
     def train_short_memory(self, state, action, lReward, bReward):
         #Should learn from lReward for lAction and bReward from bAction
         #Could use the self.selectedActionName to pick the right things to learn from
-        lLoss = self.lSelectedActionModel.learn(state, [action], lReward)
-        bLoss = self.bSelectedActionModel.learn(state, [action], bReward)
+        if action == Action.Fight.value:
+            lLoss = self.lFightModel.learn(state, [action], lReward)
+            bLoss = self.bFightModel.learn(state, [action], bReward)
+        elif action == Action.Flee.value:
+            lLoss = self.lFleeModel.learn(state, [action], lReward)
+            bLoss = self.bFleeModel.learn(state, [action], bReward)
         return [lLoss, bLoss]
     def get_state(self, character, situation):
         state_features = [
@@ -119,11 +131,11 @@ def main():
     # Define the character and the initial situation
     absL = 100
     absB = 100
-    tSitL = random.randint(40, 90)
-    tSitB = random.randint(40, 90)
-    aSitL = random.randint(40, 90)
-    aSitB = random.randint(40, 90)
-    prob_threat = 1
+    tSitL = random.randint(20, 40)
+    tSitB = random.randint(20, 40)
+    aSitL = random.randint(20, 40)
+    aSitB = random.randint(20, 40)
+    prob_threat = 0.2
     prob_ally = 1 - prob_threat
     character = Character(absL=absL, absB=absB)
     if random.random() < prob_threat:
@@ -165,13 +177,14 @@ def main():
         if death:
             print(f"Character died after {survival_rounds} rounds")
             character = Character(absL=absL, absB=absB)
-            blStore = agent.train_long_memory()
-            lLoss_values.append(blStore[0])
-            bLoss_values.append(blStore[1])
-        tSitL = random.randint(40, 90)
-        tSitB = random.randint(40, 90)
-        aSitL = random.randint(40, 90)
-        aSitB = random.randint(40, 90)
+            #not long term because not very human like
+            #blStore = agent.train_long_memory()
+            #lLoss_values.append(blStore[0])
+            #bLoss_values.append(blStore[1])
+        tSitL = random.randint(20, 40)
+        tSitB = random.randint(20, 40)
+        aSitL = random.randint(20, 40)
+        aSitB = random.randint(20, 40)
         #character = Character(absL=absL, absB=absB)
         if random.random() < prob_threat:
             situation = Threat(sitL=tSitL, sitB=tSitB, sitType=SituationType.Threat)

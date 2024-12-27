@@ -16,8 +16,8 @@ class ValueNetwork(nn.Module):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         x = self.fc3(x)
-        action_probs = self.softmax(x)
-        return action_probs
+        #action_probs = self.softmax(x)
+        return x
     
     def choose_action(self, state):
         action_probs = self.forward(state)

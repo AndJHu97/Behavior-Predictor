@@ -20,7 +20,7 @@ def plot_curves(relL_values, relB_values, sitL_values, sitB_values, action_value
     plt.title('Threat.sitB')
 
     plt.subplot(5, 2, 5)
-    plt.plot(action_values)
+    plt.scatter(range(len(action_values)), action_values)
     plt.title('Action')
 
     plt.subplot(5, 2, 6)

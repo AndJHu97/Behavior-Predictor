@@ -3,7 +3,7 @@ from enum import Enum
 from simulation import Action, SituationType, Character, Situation, Threat, Ally
 #from PGmodel import PolicyNetwork, PolicyTrainer
 from ValueNetwork import ValueNetwork
-from collections import deque
+from collections import deque, defaultdict
 import numpy as np
 import torch
 from helper import plot_curves
@@ -11,11 +11,15 @@ from helper import plot_curves
 MAX_MEMORY = 100_000
 BATCH_SIZE = 100
 LR = 0.001
+LEARNING_PERIOD = 600
+TRAINING_EPISODES = 1500
+RISK_CUTOFF = 20
+RISK_AVERSION = 1
 
 class Agent:
-    def __init__(self, actions, epsilon = 80):
+    def __init__(self, actions):
         self.actions = actions
-        self.epsilon = epsilon
+        #self.epsilon = epsilon
         self.memory = deque(maxlen = MAX_MEMORY) #When exceed memory, will remove memory/popleft
         self.lFightModel = ValueNetwork(8, 1, alpha = LR)
         self.nbFightModel = ValueNetwork(8, 1, alpha = LR)
@@ -23,6 +27,9 @@ class Agent:
         self.lFleeModel = ValueNetwork(8, 1, alpha = LR)
         self.nbFleeModel = ValueNetwork(8, 1, alpha = LR)
         self.dbFleeModel = ValueNetwork(8, 1, alpha = LR)
+        self.lBefriendModel = ValueNetwork(8, 1, alpha = LR)
+        self.nbBefriendModel = ValueNetwork(8, 1, alpha = LR)
+        self.dbBefriendModel = ValueNetwork(8, 1, alpha = LR)
         self.lSelectedActionModel = None
         self.dbSelectedActionModel = None
         self.nbSelectedActionModel = None
@@ -30,82 +37,132 @@ class Agent:
         self.selectedBType = ""
     
     #select actions and save the l and b models being used
-    def select_action(self, state, round_survived):
-        # Implementing epsilon-greedy policy
-        #NEED TO FIX
-        if random.randint(0,100) < self.epsilon - round_survived:
+    def select_action(self, character, state, rounds_encountered):
+    # Implementing epsilon-greedy policy
+        if random.randint(0, LEARNING_PERIOD) < LEARNING_PERIOD - rounds_encountered:
+            # Exploration: Random action
             move = random.choice(self.actions)
             if move == Action.Fight:
-                self.lSelectedActionModel = self.lFightModel
-                self.dbSelectedActionModel = self.dbFightModel
-                self.nbSelectedActionModel = self.nbFightModel
+                self.set_selected_models("Fight")
             elif move == Action.Flee:
-                self.lSelectedActionModel = self.lFleeModel
-                self.dbSelectedActionModel = self.dbFleeModel
-                self.nbSelectedActionModel = self.nbFleeModel
+                self.set_selected_models("Flee")
+            elif move == Action.Befriend:
+                self.set_selected_models("Befriend")
             return move.value
         else:
-            state0 = torch.tensor(state, dtype = torch.float) #Convert to tensor
-            lFightPrediction = self.lFightModel(state0) #Execute forward function
-            nbFightPrediction = self.nbFightModel(state0)
-            dbFightPrediction = self.dbFightModel(state0)
-            lFleePrediction = self.lFleeModel(state0)
-            nbFleePrediction = self.nbFleeModel(state0)
-            dbFleePrediction = self.dbFleeModel(state0)
-            #choose the one that is the most pressing to do
-            # Store predictions with labels
-            actionPredictions = {
-                "lFightModel": lFightPrediction,
-                "nbFightModel": nbFightPrediction,
-                "dbFightModel": dbFightPrediction,
-                "lFleeModel" : lFleePrediction,
-                "nbFleeModel" : nbFleePrediction,
-                "dbFleeModel" : dbFleePrediction
+            # Exploitation: Evaluate models
+            state_tensor = torch.tensor(state, dtype=torch.float)  # Convert state to tensor
+            predictions = {
+                "Fight": {
+                    "L": self.lFightModel(state_tensor),
+                    "NB": self.nbFightModel(state_tensor),
+                    "DB": self.dbFightModel(state_tensor)
+                },
+                "Flee": {
+                    "L": self.lFleeModel(state_tensor),
+                    "NB": self.nbFleeModel(state_tensor),
+                    "DB": self.dbFleeModel(state_tensor)
+                },
+                "Befriend": {
+                    "L": self.lBefriendModel(state_tensor),
+                    "NB": self.nbBefriendModel(state_tensor),
+                    "DB": self.dbBefriendModel(state_tensor)
+                }
             }
-           # Find the max prediction and its corresponding model
-            max_model, max_prediction = max(actionPredictions.items(), key=lambda x: x[1])
-            print("max model: ", max_model)
-            print("max prediction: ", max_prediction)
-            # Determine which action has the maximum sum
-            if max_model == "lFightModel":
-                self.lSelectedActionModel = self.lFightModel
-                self.nbSelectedActionModel = self.nbFightModel
-                self.dbSelectedActionModel = self.dbFightModel
-                move = 0 #Fight
-                self.selectedBType = ""
-            elif max_model == "nbFightModel":
-                self.lSelectedActionModel = self.lFightModel
-                self.nbSelectedActionModel = self.nbFightModel
-                self.dbSelectedActionModel = self.dbFightModel
-                move = 0
-                self.selectedBType = "NB"
-            elif max_model == "dbFightModel":
-                self.lSelectedActionModel = self.lFightModel
-                self.nbSelectedActionModel = self.nbFightModel
-                self.dbSelectedActionModel = self.dbFightModel
-                move = 0
-                self.selectedBType = "DB"
-            elif max_model == "lFleeModel":
-                self.lSelectedActionModel = self.lFleeModel
-                self.nbSelectedActionModel = self.nbFleeModel
-                self.dbSelectedActionModel = self.dbFleeModel
-                move = 1
-                self.selectedBType = ""
-            elif max_model == "nbFleeModel":
-                self.lSelectedActionModel = self.lFleeModel
-                self.nbSelectedActionModel = self.nbFleeModel
-                self.dbSelectedActionModel = self.dbFleeModel
-                move = 1
-                self.selectedBType = "NB"
-            elif max_model == "dbFleeModel":
-                self.lSelectedActionModel = self.lFleeModel
-                self.nbSelectedActionModel = self.nbFleeModel
-                self.dbSelectedActionModel = self.dbFleeModel
-                move = 1
-                self.selectedBType = "DB"
 
-            self.selectedActionName = max_model
-            return move
+            # Flatten the predictions into a list of tuples: (action, model_type, reward)
+            flattened_predictions = [
+                ("Fight", "L", predictions["Fight"]["L"]),
+                ("Fight", "NB", predictions["Fight"]["NB"]),
+                ("Fight", "DB", predictions["Fight"]["DB"]),
+                ("Flee", "L", predictions["Flee"]["L"]),
+                ("Flee", "NB", predictions["Flee"]["NB"]),
+                ("Flee", "DB", predictions["Flee"]["DB"]),
+                ("Befriend", "L", predictions["Befriend"]["L"]),
+                ("Befriend", "NB", predictions["Befriend"]["NB"]),
+                ("Befriend", "DB", predictions["Befriend"]["DB"]),
+            ]
+
+            #process to select out too risky 
+            #group predictions by action
+            risk_avoidance_grouped_predictions = defaultdict(list)
+            for action, model_type, reward in flattened_predictions:
+                if model_type == "L" or model_type == character.mainB:
+                    risk_avoidance_grouped_predictions[action].append(reward)
+
+            # these are actions to remove
+            risky_actions_to_avoid = set()
+
+            #look through each actions. If the risky rewards * risk_aversion is greater than the reward, then avoid
+            for action, rewards in risk_avoidance_grouped_predictions.items():
+                max_action_positive = max((r for r in rewards if r>0), default= 0)
+                print("max action positive: ", max_action_positive, " for action: ", action)
+                for reward in rewards:
+                    print("reward: ", reward.item(), " for action: ", action)
+                    if reward < 0:
+                        adjusted_risk = reward * character.risk_aversion
+                        #print("adjusted risk: ", adjusted_risk)
+                        #if adjusted risk is worse than any positive rewards and if the result is above the cutoff to caring about the risk 
+                        if abs(adjusted_risk) > max_action_positive and abs(adjusted_risk) > character.risk_cutoff:
+                            risky_actions_to_avoid.add(action)
+                            print("Risky actions to remove: ", action)
+                            break #done because this action is already considered too risky
+
+            # Filter to only consider models relevant to character.mainB and L
+            # Ignore B not consistent with mainB
+            relevant_predictions = [
+                (action, model_type, reward)
+                for action, model_type, reward in flattened_predictions
+                if model_type in ["L", character.mainB] and action not in risky_actions_to_avoid
+            ]
+
+           #for action, model_type, reward in relevant_predictions:
+            #   print(f"Action: {action}, Model: {model_type}, Reward: {reward}")
+
+            if len(relevant_predictions) > 0:
+                # Find the maximum reward and corresponding action
+                best_action, max_model, max_reward = max(relevant_predictions, key=lambda x: x[2])
+                print(f"Best action: {best_action}, Max reward: {max_reward.item()}, Model type: {max_model}")
+            else:
+                best_action = "Depression"
+                
+
+            #print(f"Character mainB: {character.mainB}")
+            #print(f"Relevant predictions: {relevant_predictions}")
+           
+
+            # Set selected models based on the chosen action
+            self.set_selected_models(best_action)
+            return self.return_action_number(best_action)
+
+    def return_action_number(self, action_type):
+        if action_type == "Fight":
+            return 0
+        elif action_type == "Flee":
+            return 1
+        elif action_type == "Befriend":
+            return 2
+        return -1 #depression or learned helplessness
+        
+    def set_selected_models(self, action_type):
+        if action_type == "Fight":
+            self.lSelectedActionModel = self.lFightModel
+            self.nbSelectedActionModel = self.nbFightModel
+            self.dbSelectedActionModel = self.dbFightModel
+        elif action_type == "Flee":
+            self.lSelectedActionModel = self.lFleeModel
+            self.nbSelectedActionModel = self.nbFleeModel
+            self.dbSelectedActionModel = self.dbFleeModel
+        elif action_type == "Befriend":
+            self.lSelectedActionModel = self.lBefriendModel
+            self.nbSelectedActionModel = self.nbBefriendModel
+            self.dbSelectedActionModel = self.dbBefriendModel
+        elif action_type == "Depression":
+            self.lSelectedActionModel = None
+            self.nbSelectedActionModel = None
+            self.dbSelectedActionModel = None
+
+
     def remember(self, state, action, lReward, dbReward, nbReward, lSelectedActionModel, dbSelectedActionModel, nbSelectedActionModel):
         #append a tuple
         self.memory.append((state, [action], lReward, dbReward, nbReward, lSelectedActionModel, dbSelectedActionModel, nbSelectedActionModel)) 
@@ -143,10 +200,14 @@ class Agent:
             lLoss = self.lFleeModel.learn(state, [action], lReward)
             bLoss = self.nbFleeModel.learn(state, [action], bReward)
         """
-
-        lLoss = self.lSelectedActionModel.learn(state, [action], lReward)
-        dbLoss = self.dbSelectedActionModel.learn(state, [action], dbReward)
-        nbLoss = self.nbSelectedActionModel.learn(state, [action], nbReward)
+        if self.lSelectedActionModel != None:
+            lLoss = self.lSelectedActionModel.learn(state, [action], lReward)
+            dbLoss = self.dbSelectedActionModel.learn(state, [action], dbReward)
+            nbLoss = self.nbSelectedActionModel.learn(state, [action], nbReward)
+        else:
+            lLoss = 0
+            dbLoss = 0
+            nbLoss = 0
 
         return [lLoss, dbLoss, nbLoss]
     def get_state(self, character, situation):
@@ -185,15 +246,15 @@ def main():
     absL = 100
     absNB = 100
     absDB = 100
-    tSitL = random.randint(40, 110)
-    tSitDB = random.randint(60, 100)
+    tSitL = random.randint(80, 120)
+    tSitDB = random.randint(60, 80)
     tSitNB = random.randint(30, 60)
-    aSitL = random.randint(30, 60)
-    aSitDB = random.randint(30, 60)
-    aSitNB = random.randint(30, 60)
-    prob_threat = 1
+    aSitL = random.randint(70, 100)
+    aSitDB = random.randint(70, 100)
+    aSitNB = random.randint(70, 100)
+    prob_threat = 0.8
     prob_ally = 1 - prob_threat
-    character = Character(absL=absL, absNB=absNB, absDB = absDB, mainB = "DB")
+    character = Character(risk_aversion= RISK_AVERSION, risk_cutoff=RISK_CUTOFF, absL=absL, absNB=absNB, absDB = absDB, mainB = "NB")
     if random.random() < prob_threat:
         situation = Threat(sitL=tSitL, sitDB=tSitDB, sitNB = tSitNB, sitType=SituationType.Threat)
     else:
@@ -212,10 +273,10 @@ def main():
     nbLoss_values = []
     dbLoss_values = []
     lLoss_values = []
-
-    for episode in range(1000):
+    rounds_encountered = 0
+    for episode in range(TRAINING_EPISODES):
         state = agent.get_state(character, situation)
-        action = agent.select_action(state, character.survival_rounds)
+        action = agent.select_action(character, state, rounds_encountered)
 
         relL_values.append(character.relL)
         relNB_values.append(character.relNB)
@@ -236,26 +297,28 @@ def main():
         dbLoss_values.append(blStore[1])
         nbLoss_values.append(blStore[2])
         agent.remember(state, action, lReward, dbReward, nbReward, agent.lSelectedActionModel, agent.dbSelectedActionModel, agent.nbSelectedActionModel)
-        character.set_stats(character.absL + 5, character.absDB + 5, character.absNB + 5)
+        #character.set_stats(character.relL + 5, character.relDB, character.relNB)
        
         if death:
             print(f"Character died after {survival_rounds} rounds")
-            character = Character(absL=absL, absNB=absNB, absDB = absDB, mainB = "DB")
+            character = Character(risk_aversion=RISK_AVERSION, risk_cutoff=RISK_CUTOFF,  absL=absL, absNB=absNB, absDB = absDB, mainB = "NB")
             #not long term because not very human like
             #blStore = agent.train_long_memory()
             #lLoss_values.append(blStore[0])
             #bLoss_values.append(blStore[1])
-        tSitL = random.randint(40, 110)
-        tSitDB = random.randint(60, 100)
+        tSitL = random.randint(80, 120)
+        tSitDB = random.randint(60, 80)
         tSitNB = random.randint(30, 60)
-        aSitL = random.randint(30, 60)
-        aSitDB = random.randint(30, 60)
-        aSitNB = random.randint(30, 60)
+        aSitL = random.randint(70, 100)
+        aSitDB = random.randint(70, 100)
+        aSitNB = random.randint(70, 100)
         #character = Character(absL=absL, absB=absB)
         if random.random() < prob_threat:
             situation = Threat(sitL=tSitL, sitDB =tSitDB, sitNB = tSitNB, sitType=SituationType.Threat)
         else:
             situation = Ally(sitL = aSitL, sitDB = aSitDB, sitNB = aSitNB, sitType=SituationType.Ally)
+
+        rounds_encountered += 1
 
     plot_curves(relL_values, relDB_values, sitL_values, sitDB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, sit_types)
 

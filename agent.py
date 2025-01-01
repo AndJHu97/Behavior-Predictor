@@ -1,35 +1,73 @@
 import random
 from enum import Enum
-from simulation import Action, SituationType, Character, Situation, Threat, Ally
+from situations import Action, SituationType
 #from PGmodel import PolicyNetwork, PolicyTrainer
 from ValueNetwork import ValueNetwork
 from collections import deque, defaultdict
 import numpy as np
 import torch
-from helper import plot_curves
+
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 100
 LR = 0.001
 LEARNING_PERIOD = 600
 TRAINING_EPISODES = 1500
-RISK_CUTOFF = 20
+RISK_THRESHOLD = 20
 RISK_AVERSION = 1
 
+class Character:
+    #need to get rid of abs, I stopped using them
+    def __init__(self, risk_aversion=1.5, risk_threshold=5, absL=100, absDB=100, absNB=100, mainB="DB"):
+        #multiplier for risky actions (negative rewards)
+        self.risk_aversion = risk_aversion
+        #cut off of negativity to care about
+        self.risk_cutoff = risk_threshold
+        self.absL = absL
+        self.absNB = absNB
+        self.absDB = absDB
+        self.mainB = mainB
+        self.relL = self.calculate_relative_stats(absL)
+        self.relNB = self.calculate_relative_stats(absNB)
+        self.relDB = self.calculate_relative_stats(absDB)
+        self.survival_rounds = 0
+    
+    #This doesn't work anymore because I'm using rel now
+    def set_stats(self, relL, relDB, relNB):
+        self.relL = relL
+        self.relNB = relNB
+        self.relDB = relDB
+
+    def mainRelB(self):
+        if self.mainB == "DB":
+            return self.relDB
+        elif self.mainB == "NB":
+            return self.relNB
+        else:
+            raise ValueError(f"Invalid value for mainB: {self.mainB}")
+
+    #this will mimic real life more. It's harder to lose when are close to dying and harder to gain when almost full health. 
+    def calculate_relative_stats(self, stat):
+        return modified_exponential_bound(stat)
+
+def modified_exponential_bound(x, k=0.02):
+    return 100 * (1 - np.exp(-k * x))
+
 class Agent:
-    def __init__(self, actions):
+    def __init__(self, actions, Lr, Learning_Period):
         self.actions = actions
         #self.epsilon = epsilon
         self.memory = deque(maxlen = MAX_MEMORY) #When exceed memory, will remove memory/popleft
-        self.lFightModel = ValueNetwork(8, 1, alpha = LR)
-        self.nbFightModel = ValueNetwork(8, 1, alpha = LR)
-        self.dbFightModel = ValueNetwork(8, 1, alpha = LR)
-        self.lFleeModel = ValueNetwork(8, 1, alpha = LR)
-        self.nbFleeModel = ValueNetwork(8, 1, alpha = LR)
-        self.dbFleeModel = ValueNetwork(8, 1, alpha = LR)
-        self.lBefriendModel = ValueNetwork(8, 1, alpha = LR)
-        self.nbBefriendModel = ValueNetwork(8, 1, alpha = LR)
-        self.dbBefriendModel = ValueNetwork(8, 1, alpha = LR)
+        self.lFightModel = ValueNetwork(8, 1, alpha = Lr)
+        self.nbFightModel = ValueNetwork(8, 1, alpha = Lr)
+        self.dbFightModel = ValueNetwork(8, 1, alpha = Lr)
+        self.lFleeModel = ValueNetwork(8, 1, alpha = Lr)
+        self.nbFleeModel = ValueNetwork(8, 1, alpha = Lr)
+        self.dbFleeModel = ValueNetwork(8, 1, alpha = Lr)
+        self.lBefriendModel = ValueNetwork(8, 1, alpha = Lr)
+        self.nbBefriendModel = ValueNetwork(8, 1, alpha = Lr)
+        self.dbBefriendModel = ValueNetwork(8, 1, alpha = Lr)
+        self.Learning_Period = Learning_Period
         self.lSelectedActionModel = None
         self.dbSelectedActionModel = None
         self.nbSelectedActionModel = None
@@ -39,7 +77,7 @@ class Agent:
     #select actions and save the l and b models being used
     def select_action(self, character, state, rounds_encountered):
     # Implementing epsilon-greedy policy
-        if random.randint(0, LEARNING_PERIOD) < LEARNING_PERIOD - rounds_encountered:
+        if random.randint(0, self.Learning_Period) < self.Learning_Period - rounds_encountered:
             # Exploration: Random action
             move = random.choice(self.actions)
             if move == Action.Fight:
@@ -241,86 +279,3 @@ class Agent:
         one_hot[index] = 1
         return one_hot
 
-def main():
-    # Define the character and the initial situation
-    absL = 100
-    absNB = 100
-    absDB = 100
-    tSitL = random.randint(80, 120)
-    tSitDB = random.randint(60, 80)
-    tSitNB = random.randint(30, 60)
-    aSitL = random.randint(70, 100)
-    aSitDB = random.randint(70, 100)
-    aSitNB = random.randint(70, 100)
-    prob_threat = 0.8
-    prob_ally = 1 - prob_threat
-    character = Character(risk_aversion= RISK_AVERSION, risk_cutoff=RISK_CUTOFF, absL=absL, absNB=absNB, absDB = absDB, mainB = "NB")
-    if random.random() < prob_threat:
-        situation = Threat(sitL=tSitL, sitDB=tSitDB, sitNB = tSitNB, sitType=SituationType.Threat)
-    else:
-        situation = Ally(sitL = aSitL, sitDB= aSitDB, sitNB = aSitNB, sitType=SituationType.Ally)
-    agent = Agent(actions=list(Action))
-    relL_values = []
-    relNB_values = []
-    relDB_values = []
-    sitL_values = []
-    sitNB_values = []
-    sitDB_values = []
-    sit_types = []
-    action_values = []
-    survival_rounds_values = []
-    rewards_values = []
-    nbLoss_values = []
-    dbLoss_values = []
-    lLoss_values = []
-    rounds_encountered = 0
-    for episode in range(TRAINING_EPISODES):
-        state = agent.get_state(character, situation)
-        action = agent.select_action(character, state, rounds_encountered)
-
-        relL_values.append(character.relL)
-        relNB_values.append(character.relNB)
-        relDB_values.append(character.relDB)
-        sitL_values.append(situation.sitL)
-        #Change to right situation 
-        sitNB_values.append(situation.sitNB) 
-        sitDB_values.append(situation.sitDB)
-        sit_types.append(situation.sitType.value)
-        action_values.append(action)
-        blStore = []
-        lReward, dbReward, nbReward, death, survival_rounds = situation.process_action(character, action)
-        survival_rounds_values.append(survival_rounds)
-        rewards_values.append(dbReward)
-        blStore = agent.train_short_memory(state, action, lReward, dbReward, nbReward)
-        lLoss_values.append(blStore[0])
-        #Loss should be from adjusted after the NN returns 3 values so it can have 3 values in blStore for L, NB, and DB
-        dbLoss_values.append(blStore[1])
-        nbLoss_values.append(blStore[2])
-        agent.remember(state, action, lReward, dbReward, nbReward, agent.lSelectedActionModel, agent.dbSelectedActionModel, agent.nbSelectedActionModel)
-        #character.set_stats(character.relL + 5, character.relDB, character.relNB)
-       
-        if death:
-            print(f"Character died after {survival_rounds} rounds")
-            character = Character(risk_aversion=RISK_AVERSION, risk_cutoff=RISK_CUTOFF,  absL=absL, absNB=absNB, absDB = absDB, mainB = "NB")
-            #not long term because not very human like
-            #blStore = agent.train_long_memory()
-            #lLoss_values.append(blStore[0])
-            #bLoss_values.append(blStore[1])
-        tSitL = random.randint(80, 120)
-        tSitDB = random.randint(60, 80)
-        tSitNB = random.randint(30, 60)
-        aSitL = random.randint(70, 100)
-        aSitDB = random.randint(70, 100)
-        aSitNB = random.randint(70, 100)
-        #character = Character(absL=absL, absB=absB)
-        if random.random() < prob_threat:
-            situation = Threat(sitL=tSitL, sitDB =tSitDB, sitNB = tSitNB, sitType=SituationType.Threat)
-        else:
-            situation = Ally(sitL = aSitL, sitDB = aSitDB, sitNB = aSitNB, sitType=SituationType.Ally)
-
-        rounds_encountered += 1
-
-    plot_curves(relL_values, relDB_values, sitL_values, sitDB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, sit_types)
-
-if __name__ == "__main__":
-    main()

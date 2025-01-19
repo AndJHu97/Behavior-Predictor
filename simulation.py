@@ -197,31 +197,31 @@ risk_threshold_entry = tk.Entry(root)
 risk_threshold_entry.grid(row=14, column=1)
 risk_threshold_entry.insert(0, "10")  # Default value for Risk Threshold
 
-tk.Label(root, text="Learning Period (How many situations it will go through picking random actions)").grid(row=16, column=0)
+tk.Label(root, text="Learning Period (How many situations it will go through picking random actions)").grid(row=15, column=0)
 learning_period_entry = tk.Entry(root)
-learning_period_entry.grid(row=16, column=1)
+learning_period_entry.grid(row=15, column=1)
 learning_period_entry.insert(0, "600")  # Default value for Learning Rate (LR)
 
-tk.Label(root, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=15, column=0)
+tk.Label(root, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=16, column=0)
 training_episodes_entry = tk.Entry(root)
-training_episodes_entry.grid(row=15, column=1)
+training_episodes_entry.grid(row=16, column=1)
 training_episodes_entry.insert(0, "1500")  # Default value for Training Episodes
 
-tk.Label(root, text="Learning Rate (LR of the neural network)").grid(row=16, column=0)
+tk.Label(root, text="Learning Rate (LR of the neural network)").grid(row=17, column=0)
 lr_entry = tk.Entry(root)
-lr_entry.grid(row=16, column=1)
+lr_entry.grid(row=17, column=1)
 lr_entry.insert(0, "0.001")  # Default value for Learning Rate (LR)
 
 # Add a dropdown for MainB selection (NB or DB)
-tk.Label(root, text="Agent's Belonging Type Selection (NB or DB)").grid(row=17, column=0)
+tk.Label(root, text="Agent's Belonging Type Selection (NB or DB)").grid(row=18, column=0)
 mainB_var = tk.StringVar(root)
 mainB_var.set("NB")  # Default value for MainB
 mainB_dropdown = tk.OptionMenu(root, mainB_var, "NB", "DB")
-mainB_dropdown.grid(row=17, column=1)
+mainB_dropdown.grid(row=18, column=1)
 
 # Create a button to start the simulation
 start_button = tk.Button(root, text="Start Simulation", command=start_simulation)
-start_button.grid(row=18, column=0, columnspan=2)
+start_button.grid(row=19, column=0, columnspan=2)
 
 # Start the Tkinter event loop
 root.mainloop()

@@ -58,15 +58,23 @@ class Agent:
         self.actions = actions
         #self.epsilon = epsilon
         self.memory = deque(maxlen = MAX_MEMORY) #When exceed memory, will remove memory/popleft
-        self.lFightModel = ValueNetwork(8, 1, alpha = Lr)
-        self.nbFightModel = ValueNetwork(8, 1, alpha = Lr)
-        self.dbFightModel = ValueNetwork(8, 1, alpha = Lr)
-        self.lFleeModel = ValueNetwork(8, 1, alpha = Lr)
-        self.nbFleeModel = ValueNetwork(8, 1, alpha = Lr)
-        self.dbFleeModel = ValueNetwork(8, 1, alpha = Lr)
-        self.lBefriendModel = ValueNetwork(8, 1, alpha = Lr)
-        self.nbBefriendModel = ValueNetwork(8, 1, alpha = Lr)
-        self.dbBefriendModel = ValueNetwork(8, 1, alpha = Lr)
+        #Change 8 to 9 when i add chase back in. Potentially need to figure out normalization with the chase?
+        self.lFightModel = ValueNetwork(9, 1, alpha = Lr)
+        self.nbFightModel = ValueNetwork(9, 1, alpha = Lr)
+        self.dbFightModel = ValueNetwork(9, 1, alpha = Lr)
+        self.lFleeModel = ValueNetwork(9, 1, alpha = Lr)
+        self.nbFleeModel = ValueNetwork(9, 1, alpha = Lr)
+        self.dbFleeModel = ValueNetwork(9, 1, alpha = Lr)
+        self.lBefriendModel = ValueNetwork(9, 1, alpha = Lr)
+        self.nbBefriendModel = ValueNetwork(9, 1, alpha = Lr)
+        self.dbBefriendModel = ValueNetwork(9, 1, alpha = Lr)
+        self.lChaseModel = ValueNetwork(9, 1, alpha = Lr)
+        self.nbChaseModel = ValueNetwork(9, 1, alpha = Lr)
+        self.dbChaseModel = ValueNetwork(9, 1, alpha = Lr)
+        self.lCryModel = ValueNetwork(9, 1, alpha = Lr)
+        self.nbCryModel = ValueNetwork(9, 1, alpha = Lr)
+        self.dbCryModel = ValueNetwork(9, 1, alpha = Lr)
+        
         self.Learning_Period = Learning_Period
         self.lSelectedActionModel = None
         self.dbSelectedActionModel = None
@@ -86,6 +94,10 @@ class Agent:
                 self.set_selected_models("Flee")
             elif move == Action.Befriend:
                 self.set_selected_models("Befriend")
+            elif move == Action.Chase:
+                self.set_selected_models("Chase")
+            elif move == Action.Cry:
+                self.set_selected_models("Cry")
             return move.value
         else:
             # Exploitation: Evaluate models
@@ -105,6 +117,16 @@ class Agent:
                     "L": self.lBefriendModel(state_tensor),
                     "NB": self.nbBefriendModel(state_tensor),
                     "DB": self.dbBefriendModel(state_tensor)
+                },
+                "Chase": {
+                    "L": self.lChaseModel(state_tensor),
+                    "NB": self.nbChaseModel(state_tensor),
+                    "DB": self.dbChaseModel(state_tensor)
+                },
+                "Cry": {
+                    "L": self.lCryModel(state_tensor),
+                    "NB": self.nbCryModel(state_tensor),
+                    "DB": self.dbCryModel(state_tensor)
                 }
             }
 
@@ -119,6 +141,12 @@ class Agent:
                 ("Befriend", "L", predictions["Befriend"]["L"]),
                 ("Befriend", "NB", predictions["Befriend"]["NB"]),
                 ("Befriend", "DB", predictions["Befriend"]["DB"]),
+                ("Chase", "L", predictions["Chase"]["L"]),
+                ("Chase", "NB", predictions["Chase"]["NB"]),
+                ("Chase", "DB", predictions["Chase"]["DB"]),
+                ("Cry", "L", predictions["Cry"]["L"]),
+                ("Cry", "NB", predictions["Cry"]["NB"]),
+                ("Cry", "DB", predictions["Cry"]["DB"]),
             ]
 
             #process to select out too risky 
@@ -134,9 +162,9 @@ class Agent:
             #look through each actions. If the risky rewards * risk_aversion is greater than the reward, then avoid
             for action, rewards in risk_avoidance_grouped_predictions.items():
                 max_action_positive = max((r for r in rewards if r>0), default= 0)
-                print("max action positive: ", max_action_positive, " for action: ", action)
+                #print("max action positive: ", max_action_positive, " for action: ", action)
                 for reward in rewards:
-                    print("reward: ", reward.item(), " for action: ", action)
+                    #print("reward: ", reward.item(), " for action: ", action)
                     if reward < 0:
                         adjusted_risk = reward * character.risk_aversion
                         #print("adjusted risk: ", adjusted_risk)
@@ -180,6 +208,10 @@ class Agent:
             return 1
         elif action_type == "Befriend":
             return 2
+        elif action_type == "Chase":
+            return 3
+        elif action_type == "Cry":
+            return 4
         return -1 #depression or learned helplessness
         
     def set_selected_models(self, action_type):
@@ -195,6 +227,14 @@ class Agent:
             self.lSelectedActionModel = self.lBefriendModel
             self.nbSelectedActionModel = self.nbBefriendModel
             self.dbSelectedActionModel = self.dbBefriendModel
+        elif action_type == "Chase":
+            self.lSelectedActionModel = self.lChaseModel
+            self.nbSelectedActionModel = self.nbChaseModel
+            self.dbSelectedActionModel = self.dbChaseModel
+        elif action_type == "Cry":
+            self.lSelectedActionModel = self.lCryModel
+            self.nbSelectedActionModel = self.nbCryModel
+            self.dbSelectedActionModel = self.dbCryModel
         elif action_type == "Depression":
             self.lSelectedActionModel = None
             self.nbSelectedActionModel = None
@@ -256,7 +296,7 @@ class Agent:
             situation.sitL,
             situation.sitDB,
             situation.sitNB
-           # character.relL - situation.sitL,
+            #character.relL - situation.sitL,
             #character.relB - situation.sitB
         ]
         # Reshape state_features to have a single sample with multiple features

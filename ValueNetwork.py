@@ -53,9 +53,10 @@ class ValueNetwork(nn.Module):
         #print("batch size: ", batch_size)
         #print("Rewards: ", rewards)
         # Create a tensor with rewards at action positions
+
+        #WHY AM I DOING THIS? WHY NOT JUST USE ACTION??
         action_value = self.forward(states)
         #print("action value: ", action_value)
-        self.optimizer.zero_grad()
         # Calculate loss using MSE between predicted rewards and the reward tensor
         loss = self.criterion(action_value, rewards)
         

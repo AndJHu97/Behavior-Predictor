@@ -6,6 +6,7 @@ from ValueNetwork import ValueNetwork
 from collections import deque, defaultdict
 import numpy as np
 import torch
+import os
 
 
 MAX_MEMORY = 100_000
@@ -18,11 +19,13 @@ RISK_AVERSION = 1
 
 class Character:
     #need to get rid of abs, I stopped using them
-    def __init__(self, risk_aversion=1.5, risk_threshold=5, absL=100, absDB=100, absNB=100, mainB="DB"):
+    def __init__(self, risk_aversion=1.2, risk_threshold=10, reward_inclination = 1, reward_threshold = 10, absL=100, absDB=100, absNB=100, mainB="DB"):
         #multiplier for risky actions (negative rewards)
         self.risk_aversion = risk_aversion
         #cut off of negativity to care about
         self.risk_cutoff = risk_threshold
+        self.reward_inclination = reward_inclination
+        self.reward_cutoff = reward_threshold
         self.absL = absL
         self.absNB = absNB
         self.absDB = absDB
@@ -151,16 +154,21 @@ class Agent:
 
             #process to select out too risky 
             #group predictions by action
-            risk_avoidance_grouped_predictions = defaultdict(list)
+            risk_avoidance_reward_negligible_grouped_predictions = defaultdict(list)
             for action, model_type, reward in flattened_predictions:
+                #Select out model types only relevant to mainB and L and get the associated reward
                 if model_type == "L" or model_type == character.mainB:
-                    risk_avoidance_grouped_predictions[action].append(reward)
+                    risk_avoidance_reward_negligible_grouped_predictions[action].append(reward)
 
             # these are actions to remove
-            risky_actions_to_avoid = set()
+            risky_or_reward_negligible_actions_to_avoid = set()
+
+            #Check if it is out of depression or out of nothing reward to do
+            is_out_of_helplessness = True
 
             #look through each actions. If the risky rewards * risk_aversion is greater than the reward, then avoid
-            for action, rewards in risk_avoidance_grouped_predictions.items():
+            for action, rewards in risk_avoidance_reward_negligible_grouped_predictions.items():
+                #max reward out of al the actions
                 max_action_positive = max((r for r in rewards if r>0), default= 0)
                 #print("max action positive: ", max_action_positive, " for action: ", action)
                 for reward in rewards:
@@ -170,16 +178,27 @@ class Agent:
                         #print("adjusted risk: ", adjusted_risk)
                         #if adjusted risk is worse than any positive rewards and if the result is above the cutoff to caring about the risk 
                         if abs(adjusted_risk) > max_action_positive and abs(adjusted_risk) > character.risk_cutoff:
-                            risky_actions_to_avoid.add(action)
+                            risky_or_reward_negligible_actions_to_avoid.add(action)
                             print("Risky actions to remove: ", action)
                             break #done because this action is already considered too risky
+                    else:
+                        #Check if reward adjusted is worth the cutoff
+                        adjusted_reward = reward * character.reward_inclination
+                        if abs(adjusted_reward) < character.reward_cutoff:
+                                print("Adjusted_reward: ", adjusted_reward, " for ", action, " Reward threshold: ", character.reward_cutoff)
+                                risky_or_reward_negligible_actions_to_avoid.add(action)
+                                #This action would have been included so wouldn't have been helplessness. But now just bored
+                                is_out_of_helplessness = False
+                                print("Action to remove that is not rewarding", action)
+                                break
+
 
             # Filter to only consider models relevant to character.mainB and L
             # Ignore B not consistent with mainB
             relevant_predictions = [
                 (action, model_type, reward)
                 for action, model_type, reward in flattened_predictions
-                if model_type in ["L", character.mainB] and action not in risky_actions_to_avoid
+                if model_type in ["L", character.mainB] and action not in risky_or_reward_negligible_actions_to_avoid
             ]
 
            #for action, model_type, reward in relevant_predictions:
@@ -188,9 +207,15 @@ class Agent:
             if len(relevant_predictions) > 0:
                 # Find the maximum reward and corresponding action
                 best_action, max_model, max_reward = max(relevant_predictions, key=lambda x: x[2])
+
+                
                 print(f"Best action: {best_action}, Max reward: {max_reward.item()}, Model type: {max_model}")
             else:
-                best_action = "Depression"
+                #No actions to do
+                if is_out_of_helplessness:
+                    best_action = "Helplessness"
+                else:
+                    best_action = "Do Nothing"
                 
 
             #print(f"Character mainB: {character.mainB}")
@@ -212,7 +237,10 @@ class Agent:
             return 3
         elif action_type == "Cry":
             return 4
-        return -1 #depression or learned helplessness
+        elif action_type == "Do Nothing":
+            return -1
+        elif action_type == "Helplessness":
+            return -2
         
     def set_selected_models(self, action_type):
         if action_type == "Fight":
@@ -235,7 +263,11 @@ class Agent:
             self.lSelectedActionModel = self.lCryModel
             self.nbSelectedActionModel = self.nbCryModel
             self.dbSelectedActionModel = self.dbCryModel
-        elif action_type == "Depression":
+        elif action_type == "Helplessness":
+            self.lSelectedActionModel = None
+            self.nbSelectedActionModel = None
+            self.dbSelectedActionModel = None
+        elif action_type == "Do Nothing":
             self.lSelectedActionModel = None
             self.nbSelectedActionModel = None
             self.dbSelectedActionModel = None
@@ -318,4 +350,47 @@ class Agent:
         one_hot = [0] * num_classes
         one_hot[index] = 1
         return one_hot
+    
+    def save_models(self, folder_name="default"):
+        # Create the directory if it doesn't exist
+        save_path = os.path.join("saved_models", folder_name)
+        os.makedirs(save_path, exist_ok=True)
+
+        torch.save(self.lFightModel.state_dict(), f"{save_path}/lFightModel.pth")
+        torch.save(self.nbFightModel.state_dict(), f"{save_path}/nbFightModel.pth")
+        torch.save(self.dbFightModel.state_dict(), f"{save_path}/dbFightModel.pth")
+        torch.save(self.lFleeModel.state_dict(), f"{save_path}/lFleeModel.pth")
+        torch.save(self.nbFleeModel.state_dict(), f"{save_path}/nbFleeModel.pth")
+        torch.save(self.dbFleeModel.state_dict(), f"{save_path}/dbFleeModel.pth")
+        torch.save(self.lBefriendModel.state_dict(), f"{save_path}/lBefriendModel.pth")
+        torch.save(self.nbBefriendModel.state_dict(), f"{save_path}/nbBefriendModel.pth")
+        torch.save(self.dbBefriendModel.state_dict(), f"{save_path}/dbBefriendModel.pth")
+        torch.save(self.lChaseModel.state_dict(), f"{save_path}/lChaseModel.pth")
+        torch.save(self.nbChaseModel.state_dict(), f"{save_path}/nbChaseModel.pth")
+        torch.save(self.dbChaseModel.state_dict(), f"{save_path}/dbChaseModel.pth")
+        torch.save(self.lCryModel.state_dict(), f"{save_path}/lCryModel.pth")
+        torch.save(self.nbCryModel.state_dict(), f"{save_path}/nbCryModel.pth")
+        torch.save(self.dbCryModel.state_dict(), f"{save_path}/dbCryModel.pth")
+
+
+    def load_models(self, folder_name="default"):
+        load_path = os.path.join("saved_models", folder_name)
+
+        self.lFightModel.load_state_dict(torch.load(f"{load_path}/lFightModel.pth"))
+        self.nbFightModel.load_state_dict(torch.load(f"{load_path}/nbFightModel.pth"))
+        self.dbFightModel.load_state_dict(torch.load(f"{load_path}/dbFightModel.pth"))
+        self.lFleeModel.load_state_dict(torch.load(f"{load_path}/lFleeModel.pth"))
+        self.nbFleeModel.load_state_dict(torch.load(f"{load_path}/nbFleeModel.pth"))
+        self.dbFleeModel.load_state_dict(torch.load(f"{load_path}/dbFleeModel.pth"))
+        self.lBefriendModel.load_state_dict(torch.load(f"{load_path}/lBefriendModel.pth"))
+        self.nbBefriendModel.load_state_dict(torch.load(f"{load_path}/nbBefriendModel.pth"))
+        self.dbBefriendModel.load_state_dict(torch.load(f"{load_path}/dbBefriendModel.pth"))
+        self.lChaseModel.load_state_dict(torch.load(f"{load_path}/lChaseModel.pth"))
+        self.nbChaseModel.load_state_dict(torch.load(f"{load_path}/nbChaseModel.pth"))
+        self.dbChaseModel.load_state_dict(torch.load(f"{load_path}/dbChaseModel.pth"))
+        self.lCryModel.load_state_dict(torch.load(f"{load_path}/lCryModel.pth"))
+        self.nbCryModel.load_state_dict(torch.load(f"{load_path}/nbCryModel.pth"))
+        self.dbCryModel.load_state_dict(torch.load(f"{load_path}/dbCryModel.pth"))
+
+
 

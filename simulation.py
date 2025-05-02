@@ -5,6 +5,13 @@ from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
 from helper import plot_curves
 
+
+
+agent = None
+#Don't need save model entry because save should be at any time but load model only matters with starting simulation
+load_model_entry = False
+predict_action_entry = False
+
 # Assuming your existing imports and class definitions like Character, Threat, Ally, etc. are already included
 
 def start_simulation():
@@ -40,29 +47,36 @@ def start_simulation():
 
     Risk_Aversion = float(risk_aversion_entry.get())
     Risk_Threshold = float(risk_threshold_entry.get())
+    Reward_Inclination = float(reward_inclination_entry.get())
+    Reward_Threshold = float(reward_threshold_entry.get())
     MainB = mainB_var.get()  # Get the value from the dropdown menu
     Training_Episodes = int(training_episodes_entry.get())
     Learning_Period = int(learning_period_entry.get())
     Lr = float(lr_entry.get())
+    model_name = model_name_entry.get()
+
+    if predict_action_entry:
+        Lr = 0
+        Learning_Period = 0
     
     # Call the main function with these values
     main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB, tHigherSitDB, tLowerSitNB, tHigherSitNB,
          aLowerSitL, aHigherSitL, aLowerSitDB, aHigherSitDB, aLowerSitNB, aHigherSitNB,
          pLowerSitL, pHigherSitL, pLowerSitDB, pHigherSitDB, pLowerSitNB, pHigherSitNB,
          societyL, societyNB, societyDB,
-         Risk_Aversion, Risk_Threshold, MainB, Training_Episodes, Lr, Learning_Period)
+         Risk_Aversion, Risk_Threshold, Reward_Inclination, Reward_Threshold, MainB, Training_Episodes, Lr, Learning_Period, model_name)
 
-def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB, tHigherDB, tLowerSitNB, tHigherSitNB, 
+def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB, tHigherSitDB, tLowerSitNB, tHigherSitNB, 
          aLowerSitL, aHigherSitL, aLowerSitDB, aHigherSitDB, aLowerSitNB, aHigherSitNB, 
          pLowerSitL, pHigherSitL, pLowerSitDB, pHigherSitDB, pLowerSitNB, pHigherSitNB,
          societyL, societyNB, societyDB,
-         Risk_Aversion, Risk_Threshold, MainB, Training_Episodes, LR, Learning_Period):
+         Risk_Aversion, Risk_Threshold, Reward_Inclination, Reward_Threshold, MainB, Training_Episodes, LR, Learning_Period, model_name):
     # Define the character and the initial situation
     absL = 100
     absNB = 100
     absDB = 100
     tSitL = random.randint(tLowerSitL, tHigherSitL)
-    tSitDB = random.randint(tLowerSitDB, tHigherDB)
+    tSitDB = random.randint(tLowerSitDB, tHigherSitDB)
     tSitNB = random.randint(tLowerSitNB, tHigherSitNB)
     aSitL = random.randint(aLowerSitL, aHigherSitL)
     aSitDB = random.randint(aLowerSitDB, aHigherSitDB)
@@ -71,7 +85,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     pSitDB = random.randint(pLowerSitDB, pHigherSitDB)
     pSitNB = random.randint(pLowerSitNB, pHigherSitNB)
 
-    character = Character(risk_aversion= Risk_Aversion, risk_threshold=Risk_Threshold, absL=absL, absNB=absNB, absDB = absDB, mainB = MainB)
+    character = Character(risk_aversion= Risk_Aversion, risk_threshold=Risk_Threshold, reward_inclination=Reward_Inclination, reward_threshold= Reward_Threshold, absL=absL, absNB=absNB, absDB = absDB, mainB = MainB)
     randomChance = random.random()
     if randomChance < prob_threat:
         situation = Threat(sitL=tSitL, sitDB=tSitDB, sitNB = tSitNB, sitType=SituationType.Threat, societyL=societyL, societyDB=societyDB, societyNB=societyNB)
@@ -79,7 +93,11 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         situation = Ally(sitL = aSitL, sitDB= aSitDB, sitNB = aSitNB, sitType=SituationType.Ally)
     else:
         situation = Prey(sitL = pSitL, sitDB= pSitDB, sitNB = pSitNB, sitType=SituationType.Prey)
+    global agent
     agent = Agent(actions=list(Action), Lr=LR, Learning_Period= Learning_Period)
+    
+    if(load_model_entry):
+        agent.load_models(model_name)
     relL_values = []
     relNB_values = []
     relDB_values = []
@@ -93,6 +111,10 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     nbLoss_values = []
     dbLoss_values = []
     lLoss_values = []
+    threat_action_values = []
+    ally_action_values = []
+    prey_action_values = []
+
     rounds_encountered = 0
     for episode in range(Training_Episodes):
         state = agent.get_state(character, situation)
@@ -107,6 +129,13 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         sitDB_values.append(situation.sitDB)
         sit_types.append(situation.sitType.value)
         action_values.append(action)
+        if(situation.sitType.value == 0):
+            threat_action_values.append(action)
+        elif(situation.sitType.value == 1):
+            ally_action_values.append(action)
+        elif(situation.sitType.value == 2):
+            prey_action_values.append(action)
+            
         blStore = []
         lReward, dbReward, nbReward, death, survival_rounds = situation.process_action(character, action)
         survival_rounds_values.append(survival_rounds)
@@ -121,13 +150,13 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
        
         if death:
             print(f"Character died after {survival_rounds} rounds")
-            character = Character(risk_aversion= Risk_Aversion, risk_threshold= Risk_Threshold,  absL=absL, absNB=absNB, absDB = absDB, mainB = MainB)
+            character = Character(risk_aversion= Risk_Aversion, risk_threshold= Risk_Threshold, reward_inclination = Reward_Inclination, reward_threshold = Reward_Threshold,  absL=absL, absNB=absNB, absDB = absDB, mainB = MainB)
             #not long term because not very human like
             #blStore = agent.train_long_memory()
             #lLoss_values.append(blStore[0])
             #bLoss_values.append(blStore[1])
         tSitL = random.randint(tLowerSitL, tHigherSitL)
-        tSitDB = random.randint(tLowerSitDB, tHigherDB)
+        tSitDB = random.randint(tLowerSitDB, tHigherSitDB)
         tSitNB = random.randint(tLowerSitNB, tHigherSitNB)
         aSitL = random.randint(aLowerSitL, aHigherSitL)
         aSitDB = random.randint(aLowerSitDB, aHigherSitDB)
@@ -144,7 +173,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         rounds_encountered += 1
 
-    plot_curves(relL_values, relDB_values, sitL_values, sitDB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, sit_types)
+    plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
+
 
 # Create the main Tkinter window
 root = tk.Tk()
@@ -282,31 +312,97 @@ risk_threshold_entry = tk.Entry(root)
 risk_threshold_entry.grid(row=25, column=1)
 risk_threshold_entry.insert(0, "10")  # Default value for Risk Threshold
 
-tk.Label(root, text="Learning Period (How many situations it will go through picking random actions)").grid(row=26, column=0)
+tk.Label(root, text="Reward Inclination (1 is neutral, <1 is reward averse, >1 is inclined to reward)").grid(row=26, column=0)
+reward_inclination_entry = tk.Entry(root)
+reward_inclination_entry.grid(row=26, column=1)
+reward_inclination_entry.insert(0, "1")  
+
+tk.Label(root, text="Reward Threshold (How rewarding a situation is to consider it. 0 = normal)").grid(row=27, column=0)
+reward_threshold_entry = tk.Entry(root)
+reward_threshold_entry.grid(row=27, column=1)
+reward_threshold_entry.insert(0, "0")  # Default value for Risk Threshold
+
+tk.Label(root, text="Learning Period (How many situations it will go through picking random actions)").grid(row=28, column=0)
 learning_period_entry = tk.Entry(root)
-learning_period_entry.grid(row=26, column=1)
+learning_period_entry.grid(row=28, column=1)
 learning_period_entry.insert(0, "600")  # Default value for Learning Rate (LR)
 
-tk.Label(root, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=27, column=0)
+tk.Label(root, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=29, column=0)
 training_episodes_entry = tk.Entry(root)
-training_episodes_entry.grid(row=27, column=1)
+training_episodes_entry.grid(row=29, column=1)
 training_episodes_entry.insert(0, "1500")  # Default value for Training Episodes
 
-tk.Label(root, text="Learning Rate (LR of the neural network)").grid(row=28, column=0)
+tk.Label(root, text="Learning Rate (LR of the neural network)").grid(row=30, column=0)
 lr_entry = tk.Entry(root)
-lr_entry.grid(row=28, column=1)
+lr_entry.grid(row=30, column=1)
 lr_entry.insert(0, "0.001")  # Default value for Learning Rate (LR)
 
 # Add a dropdown for MainB selection (NB or DB)
-tk.Label(root, text="Agent's Belonging Type Selection (NB or DB)").grid(row=29, column=0)
+tk.Label(root, text="Agent's Belonging Type Selection (NB or DB)").grid(row=31, column=0)
 mainB_var = tk.StringVar(root)
 mainB_var.set("NB")  # Default value for MainB
 mainB_dropdown = tk.OptionMenu(root, mainB_var, "NB", "DB")
-mainB_dropdown.grid(row=29, column=1)
+mainB_dropdown.grid(row=31, column=1)
 
 # Create a button to start the simulation
 start_button = tk.Button(root, text="Start Simulation", command=start_simulation)
-start_button.grid(row=30, column=0, columnspan=2)
+start_button.grid(row=32, column=0, columnspan=2)
+
+tk.Label(root, text = "Model Name").grid(row = 33, column = 0)
+model_name_entry = tk.Entry(root)
+model_name_entry.grid(row = 33, column = 1)
+model_name_entry.insert(0, "default_model")
+
+def save_model():
+    global agent
+    if agent is None:
+        agent = Agent(actions=list(Action), Lr=lr_entry, Learning_Period= learning_period_entry)
+    name = model_name_entry.get()
+    if not name:
+        messagebox.showerror("Error", "Please enter a model name to save.")
+        return
+    try:
+        agent.save_models(name)
+        messagebox.showinfo("Success", f"Model saved as '{name}'")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save model: {str(e)}")
+
+def load_model():
+    name = model_name_entry.get()
+    if not name:
+        messagebox.showerror("Error", "Please enter a model name to load.")
+        return
+    try:
+        global load_model_entry
+        load_model_entry = not load_model_entry
+
+        if load_model_entry:
+            load_button.config(text = "Unload Model")
+            messagebox.showinfo("Success", f"Model '{name}' loaded successfully")
+        else:
+            load_button.config(text = "Load Model")
+            messagebox.showinfo("Success", f"Model '{name}' unloaded successfully")
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to load model: {str(e)}")
+
+save_button = tk.Button(root, text="Save Model", command=save_model)
+save_button.grid(row=34, column=0)
+
+load_button = tk.Button(root, text="Load Model", command=load_model)
+load_button.grid(row=34, column=1)
+
+def predict_action():
+    global predict_action_entry
+    predict_action_entry = not predict_action_entry
+    if predict_action_entry:
+        predict_button.config(text = "Not Predict Action Mode")
+    else:
+        predict_button.config(text = "Predict Action Mode")
+
+predict_button = tk.Button(root, text = "Predict Action Mode", command = predict_action)
+predict_button.grid(row=35, column=0)
+
 
 # Start the Tkinter event loop
 root.mainloop()

@@ -229,12 +229,6 @@ class Threat(Situation):
             print("Agent Cry in Fight - DB loss (no societal intervention): ", dbChange)
             return dbChange
 
-        
-
-        
-
-
-
 
 
 class Ally(Situation):
@@ -246,7 +240,7 @@ class Ally(Situation):
         if action == Action.Fight.value:
             lChange = self.calculateLFight(character.relL, self.sitL)
             dbChange = self.calculateDBFight(character.relL, character.relDB, self.sitL, self.sitDB)
-            nbChange = self.calculateNBFight(self.sitNB)
+            nbChange = self.calculateNBFight(character.relNB, self.sitNB)
         elif action == Action.Flee.value:
             lChange = self.calculateLFlee()
             dbChange = self.calculateDBFlee(character.relDB, self.sitDB)
@@ -258,7 +252,7 @@ class Ally(Situation):
         elif action == Action.Chase.value:
             lChange = 0
             dbChange = 0
-            nbChange = 0
+            nbChange = self.calculateNBChase(character.relNB, self.sitNB)
         elif action == Action.Cry.value:
             lChange = 0
             dbChange = self.calculateDBCry(character.relDB, self.sitDB)
@@ -300,9 +294,9 @@ class Ally(Situation):
     def calculateLFight(self, lAgent, lEnv):
         print("Ally L fight: ", min(0, lAgent - lEnv * 0.5))
         return min(0, lAgent - lEnv * 0.5)
-    def calculateNBFight(self, nbEnv):
-        print("Ally NB Fight: ", -nbEnv * 0.2)
-        return -nbEnv * 0.2
+    def calculateNBFight(self, nbAgent, nbEnv):
+        print("Ally NB Fight: ", -nbEnv * 0.2/(nbAgent * 0.5))
+        return -nbEnv * 0.2/(nbAgent * 0.5)
     def calculateDBFight(self, lAgent, dbAgent, lEnv, dbEnv):
         dbEnd = (dbAgent + dbEnv)/2 + (lAgent - lEnv * 0.5)/2
         print("Ally DB fight: ", dbEnd - dbAgent)
@@ -336,6 +330,10 @@ class Ally(Situation):
         dbChange = (dbEnv * 0.1 - dbAgent) * 0.3
         print("Ally DB cry: ", dbChange)
         return dbChange
+    
+    def calculateNBChase(self, nbAgent, nbEnv):
+        print("Ally NB Cry: ", -nbEnv * 0.1/(nbAgent * 0.5))
+        return -nbEnv * 0.1/(nbAgent * 0.5)
 
 
 class Prey(Situation):
@@ -347,7 +345,7 @@ class Prey(Situation):
         if action == Action.Fight.value:
             lChange = self.calculateLFight(character.relL, self.sitL)
             dbChange = self.calculateDBFight(character.relL, self.sitL, character.relDB, self.sitDB)
-            nbChange = self.calculateNBFight(character.relL, self.sitL, character.relNB)
+            nbChange = self.calculateNBFight(character.relL, self.sitNB, character.relNB)
         elif action == Action.Flee.value:
             lChange = 0
             dbChange = self.calculateDBFlee(character.relDB, self.sitDB)
@@ -359,7 +357,7 @@ class Prey(Situation):
         elif action == Action.Chase.value:
             lChange = self.calculateLChase(character.relL, self.sitL)
             dbChange = self.calculateDBChase(character.relL, self.sitL, character.relDB, self.sitDB)
-            nbChange = self.calculateNBChase(character.relL, self.sitL, character.relNB)
+            nbChange = self.calculateNBChase(character.relL, self.sitNB, character.relNB)
         elif action == Action.Cry.value:
             lChange = 0
             dbChange = self.calculateDBCry(character.relDB, self.sitDB)
@@ -419,12 +417,12 @@ class Prey(Situation):
             print("Prey ran away and gained 0 DB")
             return 0
         
-    def calculateNBFight(self, lAgent, lEnv, nbAgent):
-        if lEnv * 0.5 < lAgent and lEnv < 10:
-            print("Fight with prey won and NB gained: ", 0.1 * lEnv / (nbAgent * 0.5))
-            return 0.1 * lEnv / (nbAgent * 0.5)
+    def calculateNBFight(self, lAgent, nbEnv, nbAgent):
+        if nbEnv * 0.5 < lAgent and nbEnv < 10:
+            print("Fight with prey won and NB gained: ", nbEnv * 0.5)
+            return nbEnv * 0.5
         else:
-            nbChange = -0.1 * lEnv * max( lAgent - lEnv * 0.8, 0 ) / lAgent / (nbAgent * 0.5)
+            nbChange = -0.5 * nbEnv * max( lAgent - nbEnv * 0.8, 0 ) / lAgent
             print("Fight with prey lost or ran away and NB lost: ", nbChange)
             return nbChange
         
@@ -455,12 +453,12 @@ class Prey(Situation):
         else:
             return 0
 
-    def calculateNBChase(self, lAgent, lEnv, nbAgent):
-        if (lEnv < lAgent or lEnv < 10):
-            print("Prey NB chase with prey caught: ", 0.1 * lEnv / (nbAgent * 0.5))
-            return 0.1 * lEnv / (nbAgent * 0.5)
+    def calculateNBChase(self, lAgent, nbEnv, nbAgent):
+        if (nbEnv < lAgent or nbEnv < 10):
+            print("Prey NB chase with prey caught: ", nbEnv * 0.5)
+            return nbEnv * 0.5
         else:
-            nbChange = -0.1 * lEnv * max( lAgent - lEnv * 0.8, 0 ) / lAgent / (nbAgent * 0.5)
+            nbChange = -0.5 * nbEnv * max( lAgent - nbEnv * 0.8, 0 ) / lAgent 
             print("Prey NB chase didn't catch: ", nbChange)
             return nbChange
         

@@ -86,8 +86,8 @@ class Threat(Situation):
             lChange = self.calculateLChase(character.relL, self.sitL)
             dbChange = self.calculateDBChase(character.relDB, self.sitDB, character.relL, self.sitL)
         elif action == Action.Cry.value:
-            lChange = self.calculateLCry(character.relL, character.relNB, character.relDB, self.sitL, self.societyL, self.societyDB)
-            dbChange = self.calculateDBCry(character.relL, character.relNB, character.relDB, self.sitL, self.sitDB, self.societyL, self.societyDB)
+            lChange = self.calculateLCry(character.relL, character.mainRelB(), self.sitL, self.societyL, self.societyDB)
+            dbChange = self.calculateDBCry(character.relL, character.mainRelB(), self.sitL, self.sitDB, self.societyL, self.societyDB)
 
         '''
         Don't use relative stats anymore. It's kind of useless
@@ -187,45 +187,29 @@ class Threat(Situation):
         dbEnd = min(dbEnd, 0)
         print("Fight Chase DB Change: ", dbEnd)
         return dbEnd
-    def calculateLCry(self, lAgent, nbAgent, dbAgent, lEnv, lSoc, dbSoc):
-        mainBValue = 0
-        #Getting the majority b value
-        if nbAgent == dbAgent:
-            mainBValue = random.choice([nbAgent, dbAgent])
-        elif nbAgent < dbAgent:
-            mainBValue = dbAgent
-        else:
-            mainBValue = nbAgent
-        print("Agent Cry in Fight - Agent's B Opportunity Cost: ", (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * mainBValue)
+    def calculateLCry(self, lAgent, bAgent, lEnv, lSoc, dbSoc):
+        print("Agent Cry in Fight - Agent's B Opportunity Cost: ", (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * bAgent)
         print("Agent Cry in Fight - Society's B Opportunity Cost: ", (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc))
-        if (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * mainBValue > (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc):
-            lChange = max(lAgent * 0.3 + lSoc - lEnv * 1.1, 0)
+        if (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * bAgent > (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc):
+            lChange = min(lAgent * 0.3 + lSoc - lEnv * 1.1, 0)
             print("Cry in Fight, L loss (worth intervene): ", lChange)
             return lChange
         else:
             lChange = max(0.3 * lAgent - 1.1 * lEnv, 0)
             print("Cry in fight, L loss (society doesn't intervene): ", lChange)
             return lChange
-    def calculateDBCry(self, lAgent, nbAgent, dbAgent, lEnv, dbEnv, lSoc, dbSoc):
-        mainBValue = 0
-        #Getting the majority b value
-        if nbAgent == dbAgent:
-            mainBValue = random.choice([nbAgent, dbAgent])
-        elif nbAgent < dbAgent:
-            mainBValue = dbAgent
-        else:
-            mainBValue = nbAgent
-        print("Agent Cry in Fight - Agent's B Opportunity Cost: ", (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * mainBValue)
+    def calculateDBCry(self, lAgent, bAgent, lEnv, dbEnv, lSoc, dbSoc):
+        print("Agent Cry in Fight - Agent's B Opportunity Cost: ", (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * bAgent)
         print("Agent Cry in Fight - Society's B Opportunity Cost: ", (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc))
-        if (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * mainBValue > (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc):
-            dbChange = min((dbEnv * 0.1 - dbAgent) * 0.3, 0)
+        if (lAgent - (lAgent * 0.3 - lEnv * 1.1)/lAgent) * bAgent > (lSoc - (lSoc * 0.9 - lEnv * 1.1)/lSoc * dbSoc):
+            dbChange = min((dbEnv * 0.1 - bAgent) * 0.3, 0)
             print("Agent Cry in Fight - DB loss (societal intervention): ", dbChange)
             return dbChange
         else:
-            dbEnd = (dbAgent + dbEnv)/2 + (lAgent * 0.3 - lEnv * 1.1) / 2
+            dbEnd = (bAgent + dbEnv)/2 + (lAgent * 0.3 - lEnv * 1.1) / 2
             dbEnd = min(dbEnd, 0)
-            dbFightChange = dbEnd - dbAgent
-            dbChange = min((dbEnv * 0.1 - dbAgent) * 0.3 + dbFightChange, 0)
+            dbFightChange = dbEnd - bAgent
+            dbChange = min((dbEnv * 0.1 - bAgent) * 0.3 + dbFightChange, 0)
             print("Agent Cry in Fight - DB loss (no societal intervention): ", dbChange)
             return dbChange
 

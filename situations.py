@@ -311,7 +311,7 @@ class Ally(Situation):
         return max((dbEnv - dbAgent)/3, 0)
     
     def calculateDBCry(self, dbAgent, dbEnv):
-        dbChange = (dbEnv * 0.1 - dbAgent) * 0.3
+        dbChange = min((dbEnv * 0.1 - dbAgent) * 0.3,0)
         print("Ally DB cry: ", dbChange)
         return dbChange
     

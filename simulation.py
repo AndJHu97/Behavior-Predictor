@@ -1,9 +1,10 @@
 import tkinter as tk
+import numpy as np
 from tkinter import messagebox
 import random
 from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
-from helper import plot_curves
+from helper import plot_curves, plot_complex_psychology_curves
 
 
 
@@ -98,6 +99,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     
     if(load_model_entry):
         agent.load_models(model_name)
+
     relL_values = []
     relNB_values = []
     relDB_values = []
@@ -114,11 +116,12 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     threat_action_values = []
     ally_action_values = []
     prey_action_values = []
+    boredom_maladaptive_values = []
 
     rounds_encountered = 0
     for episode in range(Training_Episodes):
         state = agent.get_state(character, situation)
-        action = agent.select_action(character, state, rounds_encountered)
+        action, value_of_action = agent.select_action(character, state, rounds_encountered)
 
         relL_values.append(character.relL)
         relNB_values.append(character.relNB)
@@ -148,6 +151,23 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         agent.remember(state, action, lReward, dbReward, nbReward, agent.lSelectedActionModel, agent.dbSelectedActionModel, agent.nbSelectedActionModel)
         #character.set_stats(character.relL + 5, character.relDB, character.relNB)
        
+        #COMPLEX PSYCHOLOGY
+
+        #Maladaptive Behavior because better than boredom
+        if value_of_action != np.nan:
+            if value_of_action < 0:
+                boredom_maladaptive_values.append({
+                    'sit_type': situation.sitType.value,
+                    'action': action,
+                    'relNB': character.relNB,
+                    'relDB': character.relDB,
+                    'relL': character.relL,
+                    'sitNB': situation.sitNB,
+                    'sitDB': situation.sitDB,
+                    'sitL': situation.sitL,
+                })
+
+
         if death:
             print(f"Character died after {survival_rounds} rounds")
             character = Character(risk_aversion= Risk_Aversion, risk_threshold= Risk_Threshold, reward_inclination = Reward_Inclination, reward_threshold = Reward_Threshold,  absL=absL, absNB=absNB, absDB = absDB, mainB = MainB)
@@ -174,7 +194,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         rounds_encountered += 1
 
     plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
-
+    plot_complex_psychology_curves(boredom_maladaptive_values)
 
 # Create the main Tkinter window
 root = tk.Tk()

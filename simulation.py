@@ -117,11 +117,12 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     ally_action_values = []
     prey_action_values = []
     boredom_maladaptive_values = []
+    positive_mindset_values = []
 
     rounds_encountered = 0
     for episode in range(Training_Episodes):
         state = agent.get_state(character, situation)
-        action, value_of_action = agent.select_action(character, state, rounds_encountered)
+        action, estimated_action_reward, type_of_action = agent.select_action(character, state, rounds_encountered)
 
         relL_values.append(character.relL)
         relNB_values.append(character.relNB)
@@ -132,6 +133,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         sitDB_values.append(situation.sitDB)
         sit_types.append(situation.sitType.value)
         action_values.append(action)
+
         if(situation.sitType.value == 0):
             threat_action_values.append(action)
         elif(situation.sitType.value == 1):
@@ -153,9 +155,19 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
        
         #COMPLEX PSYCHOLOGY
 
+        #Get actual rewards
+        actual_reward = np.nan
+        if type_of_action == "L":
+            actual_reward = lReward
+        elif type_of_action == "DB":
+            actual_reward = dbReward
+        elif type_of_action == "NB":
+            actual_reward = nbReward
+
+
         #Maladaptive Behavior because better than boredom
-        if value_of_action != np.nan:
-            if value_of_action < 0:
+        if estimated_action_reward != np.nan:
+            if estimated_action_reward < 0:
                 boredom_maladaptive_values.append({
                     'sit_type': situation.sitType.value,
                     'action': action,
@@ -165,7 +177,26 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                     'sitNB': situation.sitNB,
                     'sitDB': situation.sitDB,
                     'sitL': situation.sitL,
+                    'estimated_reward': estimated_action_reward,
+                    'actual_reward': actual_reward
                 })
+
+        #Positive/Optimistic Mindset. Prey, Chase, and estimated reward < actual reward
+        if situation.sitType.value == 2 and action == 3:
+            if actual_reward != np.nan:
+                if actual_reward > estimated_action_reward and estimated_action_reward > 0:
+                    positive_mindset_values.append({
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    })
 
 
         if death:
@@ -194,7 +225,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         rounds_encountered += 1
 
     plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
-    plot_complex_psychology_curves(boredom_maladaptive_values)
+    plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
+    plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
 
 # Create the main Tkinter window
 root = tk.Tk()

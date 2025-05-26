@@ -81,68 +81,77 @@ def plot_curves(
 
     plt.show()
 
-def plot_complex_psychology_curves(boredom_maladaptive_values):
+def plot_complex_psychology_curves(complex_psychology_values, title):
     sns.set(style="whitegrid")
     
     # Create DataFrame
-    df_boredom_maladaptive_values = pd.DataFrame(boredom_maladaptive_values)
+    df = pd.DataFrame(complex_psychology_values)
     
     # Melt character reward values
-    df_melted_character = df_boredom_maladaptive_values.melt(
-        id_vars="sit_type",
+    df_char = df.melt(
+        id_vars=["sit_type"],
         value_vars=["relL", "relDB", "relNB"],
         var_name="RewardType",
         value_name="Value"
     )
-    df_melted_character["Source"] = "Character"
+    df_char["Source"] = "Character"
     
     # Melt situation reward values
-    df_melted_sit = df_boredom_maladaptive_values.melt(
-        id_vars="sit_type",
+    df_sit = df.melt(
+        id_vars=["sit_type"],
         value_vars=["sitL", "sitDB", "sitNB"],
         var_name="RewardType",
         value_name="Value"
     )
-    df_melted_sit["Source"] = "Situation"
+    df_sit["Source"] = "Situation"
     
     # Combine
-    df_combined = pd.concat([df_melted_character, df_melted_sit])
-    
-    # Combine Source and RewardType for better hue labeling (optional)
+    df_combined = pd.concat([df_char, df_sit])
     df_combined["Combined"] = df_combined["Source"] + "_" + df_combined["RewardType"]
-
-    # Count the number of times each (sit_type, RewardType, Source) occurs
+    
+    # Group for occurrence count
     occurrence_counts = df_combined.groupby(["sit_type", "RewardType", "Source"]).size().reset_index(name="Count")
     
-    # Create a figure with two subplots
-    fig, ax = plt.subplots(2, 1, figsize=(12, 12))  # 2 rows, 1 column
+    # Create figure
+    fig, ax = plt.subplots(2, 1, figsize=(12, 12))
     
-    # Plot the stripplot (scatter plot of individual values)
+    # Stripplot: Individual values
     sns.stripplot(
         data=df_combined,
         x="sit_type",
         y="Value",
         hue="Combined",
-        dodge=True,  # separates the points by hue within each x category
-        jitter=True, # spreads out points so they don't overlap
+        dodge=True,
+        jitter=True,
         palette="muted",
-        ax=ax[0]  # Assigning to the first subplot
+        ax=ax[0]
     )
-    ax[0].set_title("Maladaptive Behaviors Out of Boredom (Individual Values)")
+
+    # Overlay estimated and actual reward (mean values per sit_type)
+    est_means = df.groupby("sit_type")["estimated_reward"].mean()
+    act_means = df.groupby("sit_type")["actual_reward"].mean()
+    
+    # Plot estimated/actual reward as points
+    for i, sit in enumerate(est_means.index):
+        ax[0].scatter(i, est_means[sit], color='black', marker='X', s=100, label='Estimated Reward' if i == 0 else "")
+        ax[0].scatter(i, act_means[sit], color='red', marker='D', s=100, label='Actual Reward' if i == 0 else "")
+
+    ax[0].set_title(title + " (Individual Values)")
     ax[0].set_ylabel("Value")
     ax[0].set_xlabel("Situation Type")
-    ax[0].legend(title="Source_RewardType", bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax[0].legend(title="Source_RewardType / Reward", bbox_to_anchor=(1.05, 1), loc='upper left')
     
-    # Plot the barplot (occurrences count)
+    # Barplot: Occurrence counts
     sns.barplot(
         data=occurrence_counts,
         x="sit_type",
         y="Count",
-        hue="Source",  # or hue="RewardType" if that's your priority
+        hue="Source",
         palette="deep",
-        ax=ax[1]  # Assigning to the second subplot
+        ax=ax[1]
     )
-    ax[1].set_title("Occurrences of Maladaptive Reward Types per Situation")
+    
+    ax[1].set_title("Occurrences of " + title + " Types per Situation")
     ax[1].set_ylabel("Number of Occurrences")
     ax[1].set_xlabel("Situation Type")
     ax[1].legend(title="Source", bbox_to_anchor=(1.05, 1), loc='upper left')

@@ -101,7 +101,7 @@ class Agent:
                 self.set_selected_models("Chase")
             elif move == Action.Cry:
                 self.set_selected_models("Cry")
-            return move.value, np.nan
+            return move.value, np.nan, "none"
         else:
             # Exploitation: Evaluate models
             state_tensor = torch.tensor(state, dtype=torch.float)  # Convert state to tensor
@@ -195,6 +195,7 @@ class Agent:
 
             # Filter to only consider models relevant to character.mainB and L
             # Ignore B not consistent with mainB
+            #list comprehension technique 
             relevant_predictions = [
                 (action, model_type, reward)
                 for action, model_type, reward in flattened_predictions
@@ -204,12 +205,14 @@ class Agent:
            #for action, model_type, reward in relevant_predictions:
             #   print(f"Action: {action}, Model: {model_type}, Reward: {reward}")
             value_of_action = np.nan
+            type_of_action = "none"
 
             if len(relevant_predictions) > 0:
                 # Find the maximum reward and corresponding action
                 best_action, max_model, max_reward = max(relevant_predictions, key=lambda x: x[2])
 
                 value_of_action = max_reward.item()
+                type_of_action = max_model
                 print(f"Best action: {best_action}, Max reward: {max_reward.item()}, Model type: {max_model}")
             else:
                 #No actions to do
@@ -225,7 +228,7 @@ class Agent:
 
             # Set selected models based on the chosen action
             self.set_selected_models(best_action)
-            return self.return_action_number(best_action), value_of_action
+            return self.return_action_number(best_action), value_of_action, type_of_action
 
     def return_action_number(self, action_type):
         if action_type == "Fight":

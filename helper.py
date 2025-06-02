@@ -82,6 +82,11 @@ def plot_curves(
     plt.show()
 
 def plot_complex_psychology_curves(complex_psychology_values, title):
+    if not complex_psychology_values:
+        print(f"⚠️ Skipping plot for '{title}': No data to plot.")
+        return
+
+
     sns.set(style="whitegrid")
     
     # Create DataFrame

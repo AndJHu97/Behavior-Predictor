@@ -118,10 +118,13 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     prey_action_values = []
     boredom_maladaptive_values = []
     positive_mindset_values = []
+    community_trusting_vulnerability_values = []
 
     rounds_encountered = 0
     for episode in range(Training_Episodes):
         state = agent.get_state(character, situation)
+
+        #if estimated_action_reward is np.nan, this means it is a random selection
         action, estimated_action_reward, type_of_action = agent.select_action(character, state, rounds_encountered)
 
         relL_values.append(character.relL)
@@ -156,6 +159,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #COMPLEX PSYCHOLOGY
 
         #Get actual rewards
+        #If actual_reward = np.nan then type_of_action is none and is due to depression or helplessness or random
         actual_reward = np.nan
         if type_of_action == "L":
             actual_reward = lReward
@@ -166,7 +170,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
 
         #Maladaptive Behavior because better than boredom
-        if estimated_action_reward != np.nan:
+        if not np.isnan(estimated_action_reward):
             if estimated_action_reward < 0:
                 boredom_maladaptive_values.append({
                     'sit_type': situation.sitType.value,
@@ -183,7 +187,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Positive/Optimistic Mindset. Prey, Chase, and estimated reward < actual reward
         if situation.sitType.value == 2 and action == 3:
-            if actual_reward != np.nan:
+            if not np.isnan(actual_reward) and not np.isnan(estimated_action_reward):
                 if actual_reward > estimated_action_reward and estimated_action_reward > 0:
                     positive_mindset_values.append({
                         'sit_type': situation.sitType.value,
@@ -197,6 +201,28 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                         'estimated_reward': estimated_action_reward,
                         'actual_reward': actual_reward
                     })
+
+
+        #Community Trusting Vulnerability
+        #Able to cry when see threat with belief it will result in something good (estimated reward )
+        if situation.sitType.value == 0 and action == 4:
+            if not np.isnan(actual_reward):
+                if estimated_action_reward > 0:
+                    community_trusting_vulnerability_values.append({
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    })
+
+
+        
 
 
         if death:
@@ -227,6 +253,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
     plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
     plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
+    plot_complex_psychology_curves(community_trusting_vulnerability_values, "Community Trusting Behavior With Vulnerability")
 
 # Create the main Tkinter window
 root = tk.Tk()

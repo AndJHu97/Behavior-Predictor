@@ -86,7 +86,6 @@ def plot_complex_psychology_curves(complex_psychology_values, title):
         print(f"⚠️ Skipping plot for '{title}': No data to plot.")
         return
 
-
     sns.set(style="whitegrid")
     
     # Create DataFrame
@@ -119,6 +118,17 @@ def plot_complex_psychology_curves(complex_psychology_values, title):
     
     # Create figure
     fig, ax = plt.subplots(2, 1, figsize=(12, 12))
+
+    # 🆕 Add total occurrences at the top of the entire figure
+    total_occurrences = len(complex_psychology_values)
+    fig.suptitle(
+    f"{title} — Total Occurrences: {total_occurrences}",
+    fontsize=16,
+    fontweight='bold',
+    y=0.99  # ⬅️ move it higher above the subplots
+    )
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # ⬅️ leave space at the top
     
     # Stripplot: Individual values
     sns.stripplot(
@@ -161,5 +171,40 @@ def plot_complex_psychology_curves(complex_psychology_values, title):
     ax[1].set_xlabel("Situation Type")
     ax[1].legend(title="Source", bbox_to_anchor=(1.05, 1), loc='upper left')
     
+    plt.tight_layout()
+    plt.show()
+
+
+def display_occurrence_counts_plot(**kwargs):
+    """
+    Displays a summary in a popup window using matplotlib.
+    Keys starting with 'H:' or 'H_' are treated as bold headers but still show counts.
+    """
+    fig, ax = plt.subplots(figsize=(6, len(kwargs) * 0.6 + 1))  # Slightly taller figure
+    ax.axis('off')
+
+    y_start = 1.0
+    line_height = 0.1  # Increased from 0.08 to 0.1 for more spacing
+
+    for i, (name, count) in enumerate(kwargs.items()):
+        is_header = str(name).startswith("H:") or str(name).startswith("H_")
+        clean_name = name[2:].replace("_", " ") if is_header else name.replace("_", " ")
+
+        fontsize = 14 if is_header else 11
+        weight = 'bold' if is_header else 'normal'
+        text = f"{clean_name}: {count}"
+
+        ax.text(
+            0.5,
+            y_start - i * line_height,
+            text,
+            ha='center',
+            va='top',
+            fontsize=fontsize,
+            fontweight=weight,
+            family='monospace'
+        )
+
+    plt.title("📊 Occurrence Summary", fontsize=14, weight='bold')
     plt.tight_layout()
     plt.show()

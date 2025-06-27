@@ -4,7 +4,7 @@ from tkinter import messagebox
 import random
 from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
-from helper import plot_curves, plot_complex_psychology_curves
+from helper import plot_curves, plot_complex_psychology_curves, display_occurrence_counts_plot
 
 
 
@@ -119,6 +119,16 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     boredom_maladaptive_values = []
     positive_mindset_values = []
     community_trusting_vulnerability_values = []
+    avoidant_relationship_values = []
+    willingness_to_flee_values = []
+    self_destructive_anger_values = []
+    bully_behavior_values = []
+    protective_behavior_values = []
+    healthy_friendliness_values = []
+    dangerous_trust_values = []
+    over_friendliness_values = []
+    hopefulness_values = []
+    cynical_values = []
 
     rounds_encountered = 0
     for episode in range(Training_Episodes):
@@ -170,8 +180,9 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
 
         #Maladaptive Behavior because better than boredom
+        #Negative rewards and not helpless nor not worth doing nothing
         if not np.isnan(estimated_action_reward):
-            if estimated_action_reward < 0:
+            if estimated_action_reward < 0 and action != -1 and action != -2:
                 boredom_maladaptive_values.append({
                     'sit_type': situation.sitType.value,
                     'action': action,
@@ -221,9 +232,190 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                         'actual_reward': actual_reward
                     })
 
+        #Avoidant Relationship 
+        #Check if it is an ally with the actions needed
+        if situation.sitType.value == 1 and (action == 0 or action == 4):
+            if not np.isnan(actual_reward):
+                avoidant_relationship_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
 
+        #Willingness to Run
+        if situation.sitType.value == 0 and action == 1:
+            if not np.isnan(actual_reward):
+                willingness_to_flee_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #When fighting but does not expect anything good from it
+        if action == 1 and estimated_action_reward < 0:
+            if not np.isnan(actual_reward):
+                self_destructive_anger_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+        #Bully
+        #When fighting and feeling good and not justified for fighting off threats
+        if action == 1 and estimated_action_reward > 0 and situation.sitType.value != 0:
+            if not np.isnan(actual_reward):
+                bully_behavior_values.append(
+                     {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Protective
+        #Fighting threats
+        if action == 1 and situation.sitType.value == 0:
+            if not np.isnan(actual_reward):
+                protective_behavior_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Healthy Friendliness
+        #Befriending allies
+        if action == 2 and situation.sitType.value == 1:
+            if not np.isnan(actual_reward):
+                healthy_friendliness_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Dangerous Trust
+        #Befriending Threats
+        if action == 2 and situation.sitType.value == 0:
+            if not np.isnan(actual_reward):
+                dangerous_trust_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Over friendliness
+        #Befriending everything but allies
+        if action == 2 and situation.sitType.value != 1:
+            if not np.isnan(actual_reward):
+                over_friendliness_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Hopeful
+        if estimated_action_reward > 0:
+            if not np.isnan(actual_reward):
+                hopefulness_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
         
-
+        #Cynical, expect negative rewards
+        if estimated_action_reward < 0:
+            if not np.isnan(actual_reward):
+                cynical_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
 
         if death:
             print(f"Character died after {survival_rounds} rounds")
@@ -250,10 +442,32 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         rounds_encountered += 1
 
+    
+
     plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
+    
+    display_occurrence_counts_plot(
+    **{
+        "H:Guardian": len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values),
+        "Self_Destructive_Anger": len(self_destructive_anger_values),
+        "H:Sustainer": len(community_trusting_vulnerability_values) + len(willingness_to_flee_values),
+    }
+    
+    )
+    
     plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
     plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
     plot_complex_psychology_curves(community_trusting_vulnerability_values, "Community Trusting Behavior With Vulnerability")
+    plot_complex_psychology_curves(avoidant_relationship_values, "Avoidant Personality Towards Relationships")
+    plot_complex_psychology_curves(willingness_to_flee_values, "Willingness To Flee")
+    plot_complex_psychology_curves(self_destructive_anger_values, "Self Destructive Anger")
+    plot_complex_psychology_curves(bully_behavior_values, "Bully Behavior")
+    plot_complex_psychology_curves(protective_behavior_values, "Protective Behaviors")
+    plot_complex_psychology_curves(healthy_friendliness_values, "Healthy Friendliness")
+    plot_complex_psychology_curves(dangerous_trust_values, "Dangerous Trust")
+    plot_complex_psychology_curves(over_friendliness_values, "Over-friendliness")
+    plot_complex_psychology_curves(hopefulness_values, "Hopeful World Lens")
+    plot_complex_psychology_curves(cynical_values, "Cynical World Lens")
 
 # Create the main Tkinter window
 root = tk.Tk()

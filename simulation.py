@@ -135,7 +135,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         state = agent.get_state(character, situation)
 
         #if estimated_action_reward is np.nan, this means it is a random selection
-        action, estimated_action_reward, type_of_action = agent.select_action(character, state, rounds_encountered)
+        action, estimated_action_reward, type_of_action_stat = agent.select_action(character, state, rounds_encountered)
 
         relL_values.append(character.relL)
         relNB_values.append(character.relNB)
@@ -171,17 +171,17 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #Get actual rewards
         #If actual_reward = np.nan then type_of_action is none and is due to depression or helplessness or random
         actual_reward = np.nan
-        if type_of_action == "L":
+        if type_of_action_stat == "L":
             actual_reward = lReward
-        elif type_of_action == "DB":
+        elif type_of_action_stat == "DB":
             actual_reward = dbReward
-        elif type_of_action == "NB":
+        elif type_of_action_stat == "NB":
             actual_reward = nbReward
 
 
         #Maladaptive Behavior because better than boredom
         #Negative rewards and not helpless nor not worth doing nothing
-        if not np.isnan(estimated_action_reward):
+        if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
             if estimated_action_reward < 0 and action != -1 and action != -2:
                 boredom_maladaptive_values.append({
                     'sit_type': situation.sitType.value,
@@ -198,7 +198,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Positive/Optimistic Mindset. Prey, Chase, and estimated reward < actual reward
         if situation.sitType.value == 2 and action == 3:
-            if not np.isnan(actual_reward) and not np.isnan(estimated_action_reward):
+            if not np.isnan(actual_reward) and not np.isnan(actual_reward):
                 if actual_reward > estimated_action_reward and estimated_action_reward > 0:
                     positive_mindset_values.append({
                         'sit_type': situation.sitType.value,
@@ -217,7 +217,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #Community Trusting Vulnerability
         #Able to cry when see threat with belief it will result in something good (estimated reward )
         if situation.sitType.value == 0 and action == 4:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 if estimated_action_reward > 0:
                     community_trusting_vulnerability_values.append({
                         'sit_type': situation.sitType.value,
@@ -233,9 +233,9 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                     })
 
         #Avoidant Relationship 
-        #Check if it is an ally with the actions needed
+        #Check if it is an ally with the actions needed (cry or fight)
         if situation.sitType.value == 1 and (action == 0 or action == 4):
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 avoidant_relationship_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -253,7 +253,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Willingness to Run
         if situation.sitType.value == 0 and action == 1:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 willingness_to_flee_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -270,8 +270,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                 )
 
         #When fighting but does not expect anything good from it
-        if action == 1 and estimated_action_reward < 0:
-            if not np.isnan(actual_reward):
+        if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
+            if action == 0 and estimated_action_reward < 0:
                 self_destructive_anger_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -288,8 +288,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                 )
         #Bully
         #When fighting and feeling good and not justified for fighting off threats
-        if action == 1 and estimated_action_reward > 0 and situation.sitType.value != 0:
-            if not np.isnan(actual_reward):
+        if action == 0 and estimated_action_reward > 0 and situation.sitType.value != 0:
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 bully_behavior_values.append(
                      {
                         'sit_type': situation.sitType.value,
@@ -307,8 +307,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Protective
         #Fighting threats
-        if action == 1 and situation.sitType.value == 0:
-            if not np.isnan(actual_reward):
+        if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
+            if action == 0 and situation.sitType.value == 0:
                 protective_behavior_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -327,7 +327,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #Healthy Friendliness
         #Befriending allies
         if action == 2 and situation.sitType.value == 1:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 healthy_friendliness_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -346,7 +346,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #Dangerous Trust
         #Befriending Threats
         if action == 2 and situation.sitType.value == 0:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 dangerous_trust_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -365,7 +365,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         #Over friendliness
         #Befriending everything but allies
         if action == 2 and situation.sitType.value != 1:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 over_friendliness_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -383,7 +383,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Hopeful
         if estimated_action_reward > 0:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 hopefulness_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -401,7 +401,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         
         #Cynical, expect negative rewards
         if estimated_action_reward < 0:
-            if not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 cynical_values.append(
                     {
                         'sit_type': situation.sitType.value,
@@ -448,9 +448,28 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     
     display_occurrence_counts_plot(
     **{
-        "H:Guardian": len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values),
-        "Self_Destructive_Anger": len(self_destructive_anger_values),
-        "H:Sustainer": len(community_trusting_vulnerability_values) + len(willingness_to_flee_values),
+        "H:Protective Role - Guardian": len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values),
+        "Self Destructive Anger": len(self_destructive_anger_values),
+        "Bully Behavior": len(bully_behavior_values),
+        "Protective Behavior": len(protective_behavior_values),
+        "H:Protective Role - Sustainer": len(community_trusting_vulnerability_values) + len(willingness_to_flee_values) + len(healthy_friendliness_values),
+        "Community Trusting Vulnerability Values": len(community_trusting_vulnerability_values),
+        "Willingness To Flee": len(willingness_to_flee_values),
+        "Healthy Friendliness (A)": len(healthy_friendliness_values),
+        "H:Relational Mode - Engaging": len(over_friendliness_values) + len(dangerous_trust_values) + len(healthy_friendliness_values),
+        "Overfriendliness": len(over_friendliness_values),
+        "Dangerous Trust": len(dangerous_trust_values),
+        "Healthy Friendliness (B)": len(healthy_friendliness_values),
+        #"H:Relational Mode - Withdrawn": len(avoidant_relationship_values), #Need to add the rest
+        #"Avoidant Behavior": len(avoidant_relationship_values),
+        "H:Drive Style - Productive": len(hopefulness_values) + len(positive_mindset_values),
+        "Hopeful": len(hopefulness_values),
+        "Positive Mindset in Goal Pursuit": len(positive_mindset_values),
+        "H:Drive Style - Destructive": len(boredom_maladaptive_values) + len(cynical_values) * 2,
+        "Drive Style - Destructive (original value)": len(boredom_maladaptive_values) + len(cynical_values),
+        "Cynical": len(cynical_values),
+        "Cynical (Weighted Value)": len(cynical_values) * 2,
+        "Maladaptive Behaviors Out Of Boredom": len(boredom_maladaptive_values),
     }
     
     )

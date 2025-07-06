@@ -119,7 +119,9 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     boredom_maladaptive_values = []
     positive_mindset_values = []
     community_trusting_vulnerability_values = []
-    avoidant_relationship_values = []
+    fearful_withdrawn_relationship_values = []
+    detached_withdrawn_relationship_values = []
+    aggressive_withdrawn_relationship_values = []
     willingness_to_flee_values = []
     self_destructive_anger_values = []
     bully_behavior_values = []
@@ -232,11 +234,49 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
                         'actual_reward': actual_reward
                     })
 
-        #Avoidant Relationship 
-        #Check if it is an ally with the actions needed (cry or fight)
-        if situation.sitType.value == 1 and (action == 0 or action == 4):
+        #Fearful Relationship 
+        #Check if it is an ally with the fearful actions needed (cry or flee)
+        if situation.sitType.value == 1 and (action == 1 or action == 4):
             if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
-                avoidant_relationship_values.append(
+                fearful_withdrawn_relationship_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Detached
+        #Check if helpless or not worth doing (depression) with allies
+        if situation.sitType.value == 1 and (action == -1 or action == -2):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
+                detached_withdrawn_relationship_values.append(
+                    {
+                        'sit_type': situation.sitType.value,
+                        'action': action,
+                        'relNB': character.relNB,
+                        'relDB': character.relDB,
+                        'relL': character.relL,
+                        'sitNB': situation.sitNB,
+                        'sitDB': situation.sitDB,
+                        'sitL': situation.sitL,
+                        'estimated_reward': estimated_action_reward,
+                        'actual_reward': actual_reward
+                    }
+                )
+
+        #Aggressive
+        #Check if fight or chase with allies
+        if situation.sitType.value == 1 and (action == 0 or action == 3):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
+                aggressive_withdrawn_relationship_values.append(
                     {
                         'sit_type': situation.sitType.value,
                         'action': action,
@@ -460,8 +500,10 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         "Overfriendliness": len(over_friendliness_values),
         "Dangerous Trust": len(dangerous_trust_values),
         "Healthy Friendliness (B)": len(healthy_friendliness_values),
-        #"H:Relational Mode - Withdrawn": len(avoidant_relationship_values), #Need to add the rest
-        #"Avoidant Behavior": len(avoidant_relationship_values),
+        "H:Relational Mode - Withdrawn": len(fearful_withdrawn_relationship_values) + len(detached_withdrawn_relationship_values) + len(aggressive_withdrawn_relationship_values),
+        "Fearful Relationship Behavior": len(fearful_withdrawn_relationship_values),
+        "Aggressive Relationship Behavior": len(aggressive_withdrawn_relationship_values),
+        "Detached Relationship Behavior": len(detached_withdrawn_relationship_values),
         "H:Drive Style - Productive": len(hopefulness_values) + len(positive_mindset_values),
         "Hopeful": len(hopefulness_values),
         "Positive Mindset in Goal Pursuit": len(positive_mindset_values),
@@ -477,7 +519,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
     plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
     plot_complex_psychology_curves(community_trusting_vulnerability_values, "Community Trusting Behavior With Vulnerability")
-    plot_complex_psychology_curves(avoidant_relationship_values, "Avoidant Personality Towards Relationships")
+    plot_complex_psychology_curves(fearful_withdrawn_relationship_values, "Avoidant Personality Towards Relationships")
     plot_complex_psychology_curves(willingness_to_flee_values, "Willingness To Flee")
     plot_complex_psychology_curves(self_destructive_anger_values, "Self Destructive Anger")
     plot_complex_psychology_curves(bully_behavior_values, "Bully Behavior")

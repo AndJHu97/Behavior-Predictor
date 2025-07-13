@@ -7,6 +7,7 @@ from collections import deque, defaultdict
 import numpy as np
 import torch
 import os
+import json
 
 
 MAX_MEMORY = 100_000
@@ -375,6 +376,38 @@ class Agent:
         torch.save(self.lCryModel.state_dict(), f"{save_path}/lCryModel.pth")
         torch.save(self.nbCryModel.state_dict(), f"{save_path}/nbCryModel.pth")
         torch.save(self.dbCryModel.state_dict(), f"{save_path}/dbCryModel.pth")
+
+    def save_training_stats(self, entry_widgets: dict, folder_name="default"):
+        """
+        Saves stats from Tkinter entry widgets into a JSON file.
+        
+        Parameters:
+        - entry_widgets: dict mapping stat names to Tkinter entry widgets or dropdowns.
+        - folder_name: subfolder under "saved_models" where the stats file will be saved.
+        """
+        save_path = os.path.join("saved_stats", folder_name)
+        os.makedirs(save_path, exist_ok=True)
+
+        # Extract values from the entry widgets
+        stats = {}
+        for key, widget in entry_widgets.items():
+            try:
+                if hasattr(widget, 'get'):
+                    value = widget.get()
+                    # Try to convert to float or int
+                    if value.replace('.', '', 1).isdigit() or (value.startswith('-') and value[1:].replace('.', '', 1).isdigit()):
+                        stats[key] = float(value) if '.' in value else int(value)
+                    else:
+                        stats[key] = value  # Keep as string
+                else:
+                    stats[key] = widget  # Allow plain values as fallback
+            except Exception as e:
+                print(f"Error reading {key}: {e}")
+                stats[key] = None
+
+        # Save as JSON
+        with open(os.path.join(save_path, "training_stats.json"), "w") as f:
+            json.dump(stats, f, indent=4)
 
 
     def load_models(self, folder_name="default"):

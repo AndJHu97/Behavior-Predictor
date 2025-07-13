@@ -1,4 +1,6 @@
 import tkinter as tk
+import json
+import os
 import numpy as np
 from tkinter import messagebox
 import random
@@ -710,16 +712,58 @@ model_name_entry.insert(0, "default_model")
 def save_model():
     global agent
     if agent is None:
-        agent = Agent(actions=list(Action), Lr=lr_entry, Learning_Period= learning_period_entry)
+        agent = Agent(actions=list(Action), Lr=lr_entry.get(), Learning_Period=learning_period_entry.get())
+
     name = model_name_entry.get()
     if not name:
         messagebox.showerror("Error", "Please enter a model name to save.")
         return
+
     try:
         agent.save_models(name)
-        messagebox.showinfo("Success", f"Model saved as '{name}'")
+
+        # Build a dictionary of entry widgets or values
+        stats_entries = {
+            "prob_threat": prob_threat_entry,
+            "prob_ally": prob_ally_entry,
+            "prob_prey": prob_prey_entry,
+            "tLowerSitL": tLowerSitL_entry,
+            "tHigherSitL": tHigherSitL_entry,
+            "tLowerSitDB": tLowerSitDB_entry,
+            "tHigherSitDB": tHigherSitDB_entry,
+            "tLowerSitNB": tLowerSitNB_entry,
+            "tHigherSitNB": tHigherSitNB_entry,
+            "aLowerSitL": aLowerSitL_entry,
+            "aHigherSitL": aHigherSitL_entry,
+            "aLowerSitDB": aLowerSitDB_entry,
+            "aHigherSitDB": aHigherSitDB_entry,
+            "aLowerSitNB": aLowerSitNB_entry,
+            "aHigherSitNB": aHigherSitNB_entry,
+            "pLowerSitL": pLowerSitL_entry,
+            "pHigherSitL": pHigherSitL_entry,
+            "pLowerSitDB": pLowerSitDB_entry,
+            "pHigherSitDB": pHigherSitDB_entry,
+            "pLowerSitNB": pLowerSitNB_entry,
+            "pHigherSitNB": pHigherSitNB_entry,
+            "societyL": societyL_entry,
+            "societyNB": societyNB_entry,
+            "societyDB": societyDB_entry,
+            "Risk_Aversion": risk_aversion_entry,
+            "Risk_Threshold": risk_threshold_entry,
+            "Reward_Inclination": reward_inclination_entry,
+            "Reward_Threshold": reward_threshold_entry,
+            "MainB": mainB_var,  # This can be a string from dropdown
+            "Training_Episodes": training_episodes_entry,
+            "Learning_Period": learning_period_entry,
+            "Learning_Rate": lr_entry
+        }
+
+        # Save stats to file
+        agent.save_training_stats(stats_entries, folder_name=name)
+
     except Exception as e:
         messagebox.showerror("Error", f"Failed to save model: {str(e)}")
+
 
 def load_model():
     name = model_name_entry.get()
@@ -731,20 +775,83 @@ def load_model():
         load_model_entry = not load_model_entry
 
         if load_model_entry:
-            load_button.config(text = "Unload Model")
+            load_button.config(text="Unload Model")
+            load_saved_stats(name)
             messagebox.showinfo("Success", f"Model '{name}' loaded successfully")
         else:
-            load_button.config(text = "Load Model")
+            load_button.config(text="Load Model")
             messagebox.showinfo("Success", f"Model '{name}' unloaded successfully")
-        
+
     except Exception as e:
         messagebox.showerror("Error", f"Failed to load model: {str(e)}")
+
 
 save_button = tk.Button(root, text="Save Model", command=save_model)
 save_button.grid(row=34, column=0)
 
 load_button = tk.Button(root, text="Load Model", command=load_model)
 load_button.grid(row=34, column=1)
+
+def load_saved_stats(model_name):
+    try:
+        stats_path = os.path.join("saved_stats", model_name, "training_stats.json")
+        if not os.path.exists(stats_path):
+            messagebox.showwarning("Not Found", f"No saved stats found for model '{model_name}'.")
+            return
+
+        with open(stats_path, "r") as f:
+            saved_stats = json.load(f)
+
+        # Map keys to entry widgets and dropdown variable
+        entry_mapping = {
+            "prob_threat": prob_threat_entry,
+            "prob_ally": prob_ally_entry,
+            "prob_prey": prob_prey_entry,
+            "tLowerSitL": tLowerSitL_entry,
+            "tHigherSitL": tHigherSitL_entry,
+            "tLowerSitDB": tLowerSitDB_entry,
+            "tHigherSitDB": tHigherSitDB_entry,
+            "tLowerSitNB": tLowerSitNB_entry,
+            "tHigherSitNB": tHigherSitNB_entry,
+            "aLowerSitL": aLowerSitL_entry,
+            "aHigherSitL": aHigherSitL_entry,
+            "aLowerSitDB": aLowerSitDB_entry,
+            "aHigherSitDB": aHigherSitDB_entry,
+            "aLowerSitNB": aLowerSitNB_entry,
+            "aHigherSitNB": aHigherSitNB_entry,
+            "pLowerSitL": pLowerSitL_entry,
+            "pHigherSitL": pHigherSitL_entry,
+            "pLowerSitDB": pLowerSitDB_entry,
+            "pHigherSitDB": pHigherSitDB_entry,
+            "pLowerSitNB": pLowerSitNB_entry,
+            "pHigherSitNB": pHigherSitNB_entry,
+            "societyL": societyL_entry,
+            "societyNB": societyNB_entry,
+            "societyDB": societyDB_entry,
+            "Risk_Aversion": risk_aversion_entry,
+            "Risk_Threshold": risk_threshold_entry,
+            "Reward_Inclination": reward_inclination_entry,
+            "Reward_Threshold": reward_threshold_entry,
+            "Training_Episodes": training_episodes_entry,
+            "Learning_Period": learning_period_entry,
+            "Learning_Rate": lr_entry
+        }
+
+        # Populate entry fields
+        for key, entry_widget in entry_mapping.items():
+            if key in saved_stats:
+                value = str(saved_stats[key])
+                entry_widget.delete(0, tk.END)
+                entry_widget.insert(0, value)
+
+        # Set dropdown value
+        if "MainB" in saved_stats:
+            mainB_var.set(saved_stats["MainB"])
+
+        messagebox.showinfo("Loaded", f"Successfully loaded stats for model '{model_name}'")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to load stats: {str(e)}")
 
 def predict_action():
     global predict_action_entry

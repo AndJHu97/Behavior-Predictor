@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-
+plt.show()
 
 def plot_curves(
     relL_values, relDB_values, relNB_values,
@@ -79,7 +79,7 @@ def plot_curves(
 
 
 
-    plt.show()
+    plt.show(block=False)
 
 def plot_complex_psychology_curves(complex_psychology_values, title):
     if not complex_psychology_values:
@@ -172,7 +172,7 @@ def plot_complex_psychology_curves(complex_psychology_values, title):
     ax[1].legend(title="Source", bbox_to_anchor=(1.05, 1), loc='upper left')
     
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False) #allows all windows to be loaded at once
 
 
 def display_occurrence_counts_plot(**kwargs):
@@ -207,4 +207,7 @@ def display_occurrence_counts_plot(**kwargs):
 
     plt.title("📊 Occurrence Summary", fontsize=14, weight='bold')
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
+
+
+

@@ -7,6 +7,7 @@ import random
 from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
 from helper import plot_curves, plot_complex_psychology_curves, display_occurrence_counts_plot
+from advice.advice_generator import load_advice_file, filter_advice, export_advice
 
 
 
@@ -488,28 +489,35 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
     plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
     
+    pr_guardian_value = len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values)
+    pr_sustainer_value = len(community_trusting_vulnerability_values) + len(willingness_to_flee_values) + len(healthy_friendliness_values)
+    relationship_engaging_value = len(over_friendliness_values) + len(dangerous_trust_values) + len(healthy_friendliness_values)
+    relationship_withdrawn_value = len(fearful_withdrawn_relationship_values) + len(detached_withdrawn_relationship_values) + len(aggressive_withdrawn_relationship_values)
+    drive_productive_value = len(hopefulness_values) + len(positive_mindset_values)
+    drive_destructive_value = len(boredom_maladaptive_values) + len(cynical_values) * 2
+
     display_occurrence_counts_plot(
     **{
-        "H:Protective Role - Guardian": len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values),
+        "H:Protective Role - Guardian": pr_guardian_value,
         "Self Destructive Anger": len(self_destructive_anger_values),
         "Bully Behavior": len(bully_behavior_values),
         "Protective Behavior": len(protective_behavior_values),
-        "H:Protective Role - Sustainer": len(community_trusting_vulnerability_values) + len(willingness_to_flee_values) + len(healthy_friendliness_values),
+        "H:Protective Role - Sustainer": pr_sustainer_value,
         "Community Trusting Vulnerability Values": len(community_trusting_vulnerability_values),
         "Willingness To Flee": len(willingness_to_flee_values),
         "Healthy Friendliness (A)": len(healthy_friendliness_values),
-        "H:Relational Mode - Engaging": len(over_friendliness_values) + len(dangerous_trust_values) + len(healthy_friendliness_values),
+        "H:Relational Mode - Engaging": relationship_engaging_value,
         "Overfriendliness": len(over_friendliness_values),
         "Dangerous Trust": len(dangerous_trust_values),
         "Healthy Friendliness (B)": len(healthy_friendliness_values),
-        "H:Relational Mode - Withdrawn": len(fearful_withdrawn_relationship_values) + len(detached_withdrawn_relationship_values) + len(aggressive_withdrawn_relationship_values),
+        "H:Relational Mode - Withdrawn": relationship_withdrawn_value,
         "Fearful Relationship Behavior": len(fearful_withdrawn_relationship_values),
         "Aggressive Relationship Behavior": len(aggressive_withdrawn_relationship_values),
         "Detached Relationship Behavior": len(detached_withdrawn_relationship_values),
-        "H:Drive Style - Productive": len(hopefulness_values) + len(positive_mindset_values),
+        "H:Drive Style - Productive": drive_productive_value,
         "Hopeful": len(hopefulness_values),
         "Positive Mindset in Goal Pursuit": len(positive_mindset_values),
-        "H:Drive Style - Destructive": len(boredom_maladaptive_values) + len(cynical_values) * 2,
+        "H:Drive Style - Destructive": drive_destructive_value,
         "Drive Style - Destructive (original value)": len(boredom_maladaptive_values) + len(cynical_values),
         "Cynical": len(cynical_values),
         "Cynical (Weighted Value)": len(cynical_values) * 2,
@@ -531,6 +539,20 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     plot_complex_psychology_curves(over_friendliness_values, "Over-friendliness")
     plot_complex_psychology_curves(hopefulness_values, "Hopeful World Lens")
     plot_complex_psychology_curves(cynical_values, "Cynical World Lens")
+
+    scores = {
+        "belonging_type": MainB,
+        "pr_guardian": pr_guardian_value,
+        "pr_sustainer": pr_sustainer_value,
+        "relationship_engaging": relationship_engaging_value,
+        "relationship_withdrawn": relationship_withdrawn_value,
+        "drive_productive": drive_productive_value,
+        "drive_destructive": drive_destructive_value
+    }
+
+    advice_df = load_advice_file("advice/advice.csv")
+    filtered_advice = filter_advice(advice_df, scores)
+    export_advice(filtered_advice, filename=f"advice/{model_name}.csv", text_filename=f"advice/{model_name}.txt")
 
 # Create the main Tkinter window
 root = tk.Tk()
@@ -722,7 +744,7 @@ def save_model():
     try:
         agent.save_models(name)
 
-        # Build a dictionary of entry widgets or values
+        # Build a dictionary to pass to save the stats
         stats_entries = {
             "prob_threat": prob_threat_entry,
             "prob_ally": prob_ally_entry,

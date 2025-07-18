@@ -1,0 +1,3 @@
+Category,Subcategory,Tags,Advice,Conditions
+Protective Role,Natural Tendencies,"Guardian, High_Value","Your protective role is naturally a Guardian and your environment heavily lets you be who you want to be known for. A guardian protects, confronts threats, and defends his loved ones. Your surrounding allows you to be who you are.","pr_guardian > pr_sustainer * 2 and belonging_type == 'DB'"
+Protective Role,Natural Tendencies,"Sustainer, High_Value","Your protective role is naturally a Sustainer and your environment heavily lets you be who you want to be known for. A sustainer nurtures others, provides positivity, and looks to better those around them. Your surrounding allows you to be who you are.","pr_sustainer > pr_guardian * 2 and belonging_type == 'NB'"

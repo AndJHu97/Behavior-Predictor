@@ -72,22 +72,27 @@ class Threat(Situation):
         super().__init__(sitL, sitDB, sitNB, sitType, societyL, societyNB, societyDB) 
     def process_action(self, character, action):
         death = False
-        lChange, dbChange = 0, 0
+        lChange, dbChange, nbChange = 0, 0, 0
         if action == Action.Fight.value:
             lChange = self.calculateLFight(character.relL, self.sitL)
             dbChange = self.calculateDBFight(character.relL, character.relDB, self.sitL, self.sitDB)
+            nbChange = self.calculateNBFight(character.relL, self.sitL, self.sitNB)
         elif action == Action.Flee.value:
             lChange = self.calculateLFlee(character.relL, self.sitL)
             dbChange = self.calculateDBFlee(character.relL, character.relDB, self.sitL, self.sitDB)
+            nbChange = 0
         elif action == Action.Befriend.value:
             lChange = self.calculateLFriend(character.relL, self.sitL)
             dbChange = self.calculateBFriend(character.relL, character.relDB, self.sitL, self.sitDB)
+            nbChange = 0
         elif action == Action.Chase.value:
             lChange = self.calculateLChase(character.relL, self.sitL)
             dbChange = self.calculateDBChase(character.relDB, self.sitDB, character.relL, self.sitL)
+            nbChange = 0
         elif action == Action.Cry.value:
             lChange = self.calculateLCry(character.relL, character.mainRelB(), self.sitL, self.societyL, self.societyDB)
             dbChange = self.calculateDBCry(character.relL, character.mainRelB(), self.sitL, self.sitDB, self.societyL, self.societyDB)
+            nbChange = 0
 
         '''
         Don't use relative stats anymore. It's kind of useless
@@ -104,22 +109,27 @@ class Threat(Situation):
         character.relL = newRelL
         character.relDB = newRelDB
         '''
-
         newRelL = character.relL + lChange
         newRelDB = character.relDB + dbChange
+        newRelNB = character.relNB + nbChange
+
         newRelL = min(100, newRelL)
         newRelDB = min(100, newRelDB)
+        newRelNB = min(100, newRelNB)
 
         relLChange = newRelL - character.relL
         relDBChange = newRelDB - character.relDB
+        relNBChange = newRelNB - character.relNB
 
         #reward is adding together change in b/l 
         lReward = self.calculate_reward(newRelL) * relLChange
         dbReward = self.calculate_reward(newRelDB) * relDBChange
-        nbReward = 0
+        nbReward = self.calculate_reward(newRelNB) * relNBChange
+        
 
         character.relL = newRelL
         character.relDB = newRelDB
+        character.relNB = newRelNB
 
         #Doesn't pay attention to reward based on the B not related to their mainB
         if character.mainB == "DB":
@@ -149,6 +159,12 @@ class Threat(Situation):
         print("Threat DB fight: ", (dbEnd - dbAgent))
         print("lAgent: ", lAgent, " dbAgent: ", dbAgent, " lEnv: ", lEnv, " dbEnv: ", dbEnv)
         return dbEnd - dbAgent
+    def calculateNBFight(self, lAgent, lEnv, nbEnv):
+        nbChange = min(-(lEnv - lAgent * 1.1)/lEnv * nbEnv * 1.1, -5)
+        print("Threat NB Fight: ", nbChange)
+        print("lAgent: ", lAgent, " lEnv: ", lEnv, " nbEnv: ", nbEnv)
+        return nbChange
+
     def calculateLFlee(self,lAgent,lEnv):
         if(lAgent < lEnv * 0.55): 
             print("Threat L Flee: ", lAgent * 0.7 - lEnv * 1.1)

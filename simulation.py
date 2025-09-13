@@ -8,6 +8,7 @@ from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
 from helper import plot_curves, plot_complex_psychology_curves, display_occurrence_counts_plot
 from advice.advice_generator import load_advice_file, filter_advice, export_advice
+from quiz_mode import run_quiz
 
 
 
@@ -731,6 +732,46 @@ model_name_entry = tk.Entry(root)
 model_name_entry.grid(row = 33, column = 1)
 model_name_entry.insert(0, "default_model")
 
+# Build a dictionary to pass to save the stats
+stats_entries = {
+    "prob_threat": prob_threat_entry,
+    "prob_ally": prob_ally_entry,
+    "prob_prey": prob_prey_entry,
+    "tLowerSitL": tLowerSitL_entry,
+    "tHigherSitL": tHigherSitL_entry,
+    "tLowerSitDB": tLowerSitDB_entry,
+    "tHigherSitDB": tHigherSitDB_entry,
+    "tLowerSitNB": tLowerSitNB_entry,
+    "tHigherSitNB": tHigherSitNB_entry,
+    "aLowerSitL": aLowerSitL_entry,
+    "aHigherSitL": aHigherSitL_entry,
+    "aLowerSitDB": aLowerSitDB_entry,
+    "aHigherSitDB": aHigherSitDB_entry,
+    "aLowerSitNB": aLowerSitNB_entry,
+    "aHigherSitNB": aHigherSitNB_entry,
+    "pLowerSitL": pLowerSitL_entry,
+    "pHigherSitL": pHigherSitL_entry,
+    "pLowerSitDB": pLowerSitDB_entry,
+    "pHigherSitDB": pHigherSitDB_entry,
+    "pLowerSitNB": pLowerSitNB_entry,
+    "pHigherSitNB": pHigherSitNB_entry,
+    "societyL": societyL_entry,
+    "societyNB": societyNB_entry,
+    "societyDB": societyDB_entry,
+    "Risk_Aversion": risk_aversion_entry,
+    "Risk_Threshold": risk_threshold_entry,
+    "Reward_Inclination": reward_inclination_entry,
+    "Reward_Threshold": reward_threshold_entry,
+    "MainB": mainB_var,  # This can be a string from dropdown
+    "Training_Episodes": training_episodes_entry,
+    "Learning_Period": learning_period_entry,
+    "Learning_Rate": lr_entry
+}
+
+quiz_button = tk.Button(root, text="Personality Test", command= lambda: run_quiz(root, stats_entries))
+quiz_button.grid(row=34, column=0, columnspan=2)
+
+
 def save_model():
     global agent
     if agent is None:
@@ -743,42 +784,6 @@ def save_model():
 
     try:
         agent.save_models(name)
-
-        # Build a dictionary to pass to save the stats
-        stats_entries = {
-            "prob_threat": prob_threat_entry,
-            "prob_ally": prob_ally_entry,
-            "prob_prey": prob_prey_entry,
-            "tLowerSitL": tLowerSitL_entry,
-            "tHigherSitL": tHigherSitL_entry,
-            "tLowerSitDB": tLowerSitDB_entry,
-            "tHigherSitDB": tHigherSitDB_entry,
-            "tLowerSitNB": tLowerSitNB_entry,
-            "tHigherSitNB": tHigherSitNB_entry,
-            "aLowerSitL": aLowerSitL_entry,
-            "aHigherSitL": aHigherSitL_entry,
-            "aLowerSitDB": aLowerSitDB_entry,
-            "aHigherSitDB": aHigherSitDB_entry,
-            "aLowerSitNB": aLowerSitNB_entry,
-            "aHigherSitNB": aHigherSitNB_entry,
-            "pLowerSitL": pLowerSitL_entry,
-            "pHigherSitL": pHigherSitL_entry,
-            "pLowerSitDB": pLowerSitDB_entry,
-            "pHigherSitDB": pHigherSitDB_entry,
-            "pLowerSitNB": pLowerSitNB_entry,
-            "pHigherSitNB": pHigherSitNB_entry,
-            "societyL": societyL_entry,
-            "societyNB": societyNB_entry,
-            "societyDB": societyDB_entry,
-            "Risk_Aversion": risk_aversion_entry,
-            "Risk_Threshold": risk_threshold_entry,
-            "Reward_Inclination": reward_inclination_entry,
-            "Reward_Threshold": reward_threshold_entry,
-            "MainB": mainB_var,  # This can be a string from dropdown
-            "Training_Episodes": training_episodes_entry,
-            "Learning_Period": learning_period_entry,
-            "Learning_Rate": lr_entry
-        }
 
         # Save stats to file
         agent.save_training_stats(stats_entries, folder_name=name)

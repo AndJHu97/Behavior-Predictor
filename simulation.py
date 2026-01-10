@@ -732,6 +732,8 @@ model_name_entry = tk.Entry(root)
 model_name_entry.grid(row = 33, column = 1)
 model_name_entry.insert(0, "default_model")
 
+mainB_entry = tk.Entry(root)  # create a hidden entry
+mainB_entry.pack_forget()     # hide it so it doesn’t show in UI
 # Build a dictionary to pass to save the stats
 stats_entries = {
     "prob_threat": prob_threat_entry,
@@ -762,14 +764,15 @@ stats_entries = {
     "Risk_Threshold": risk_threshold_entry,
     "Reward_Inclination": reward_inclination_entry,
     "Reward_Threshold": reward_threshold_entry,
-    "MainB": mainB_var,  # This can be a string from dropdown
+    "MainB": mainB_entry,  # This can be a string from dropdown
     "Training_Episodes": training_episodes_entry,
     "Learning_Period": learning_period_entry,
     "Learning_Rate": lr_entry
 }
 
-quiz_button = tk.Button(root, text="Personality Test", command= lambda: run_quiz(root, stats_entries))
+quiz_button = tk.Button(root, text="Personality Test", command= lambda: run_quiz(root, stats_entries, mainB_var))
 quiz_button.grid(row=34, column=0, columnspan=2)
+
 
 
 def save_model():

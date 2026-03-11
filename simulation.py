@@ -2,8 +2,10 @@ import tkinter as tk
 import json
 import os
 import numpy as np
-from tkinter import messagebox
+from tkinter import messagebox, scrolledtext
 import random
+import csv
+from datetime import datetime
 from situations import Action, SituationType, Threat, Ally, Prey
 from agent import Character, Agent
 from helper import plot_curves, plot_complex_psychology_curves, display_occurrence_counts_plot
@@ -18,6 +20,204 @@ load_model_entry = False
 predict_action_entry = False
 
 # Assuming your existing imports and class definitions like Character, Threat, Ally, etc. are already included
+
+def run_multiple_simulations():
+    """Run simulation multiple times and display statistics"""
+    try:
+        num_runs = int(num_runs_entry.get())
+        if num_runs < 1:
+            messagebox.showerror("Error", "Number of runs must be at least 1.")
+            return
+    except ValueError:
+        messagebox.showerror("Error", "Please enter a valid number for runs.")
+        return
+
+    # Get all parameters
+    prob_threat = float(prob_threat_entry.get())
+    prob_ally = float(prob_ally_entry.get())
+    prob_prey = float(prob_prey_entry.get())
+    tLowerSitL = int(tLowerSitL_entry.get())
+    tHigherSitL = int(tHigherSitL_entry.get())
+    tLowerSitDB = int(tLowerSitDB_entry.get())
+    tHigherSitDB = int(tHigherSitDB_entry.get())
+    tLowerSitNB = int(tLowerSitNB_entry.get())
+    tHigherSitNB = int(tHigherSitNB_entry.get())
+    aLowerSitL = int(aLowerSitL_entry.get())
+    aHigherSitL = int(aHigherSitL_entry.get())
+    aLowerSitDB = int(aLowerSitDB_entry.get())
+    aHigherSitDB = int(aHigherSitDB_entry.get())
+    aLowerSitNB = int(aLowerSitNB_entry.get())
+    aHigherSitNB = int(aHigherSitNB_entry.get())
+    pLowerSitL = int(pLowerSitL_entry.get())
+    pHigherSitL = int(pHigherSitL_entry.get())
+    pLowerSitDB = int(pLowerSitDB_entry.get())
+    pHigherSitDB = int(pHigherSitDB_entry.get())
+    pLowerSitNB = int(pLowerSitNB_entry.get())
+    pHigherSitNB = int(pHigherSitNB_entry.get())
+    societyL = int(societyL_entry.get())
+    societyNB = int(societyNB_entry.get())
+    societyDB = int(societyDB_entry.get())
+    Risk_Aversion = float(risk_aversion_entry.get())
+    Risk_Threshold = float(risk_threshold_entry.get())
+    Reward_Inclination = float(reward_inclination_entry.get())
+    Reward_Threshold = float(reward_threshold_entry.get())
+    MainB = mainB_var.get()
+    Training_Episodes = int(training_episodes_entry.get())
+    Learning_Period = int(learning_period_entry.get())
+    Lr = float(lr_entry.get())
+    model_name = model_name_entry.get()
+
+    if predict_action_entry:
+        Lr = 0
+        Learning_Period = 0
+
+    # Run simulations and collect results
+    all_results = []
+    progress_window = tk.Toplevel(root)
+    progress_window.title("Running Simulations")
+    progress_label = tk.Label(progress_window, text=f"Running simulation 0 of {num_runs}...")
+    progress_label.pack(padx=20, pady=20)
+    progress_window.update()
+
+    for run in range(num_runs):
+        progress_label.config(text=f"Running simulation {run + 1} of {num_runs}...")
+        progress_window.update()
+        
+        results = main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB, tHigherSitDB, tLowerSitNB, tHigherSitNB,
+                      aLowerSitL, aHigherSitL, aLowerSitDB, aHigherSitDB, aLowerSitNB, aHigherSitNB,
+                      pLowerSitL, pHigherSitL, pLowerSitDB, pHigherSitDB, pLowerSitNB, pHigherSitNB,
+                      societyL, societyNB, societyDB,
+                      Risk_Aversion, Risk_Threshold, Reward_Inclination, Reward_Threshold, MainB, Training_Episodes, Lr, Learning_Period, model_name, False)
+        all_results.append(results)
+
+    progress_window.destroy()
+
+    # Calculate statistics
+    stats = calculate_statistics(all_results)
+    
+    # Display results
+    display_multiple_runs_results(all_results, stats, model_name)
+
+
+def calculate_statistics(all_results):
+    """Calculate total, mean, and standard deviation for each metric"""
+    if not all_results:
+        return {}
+    
+    metrics = all_results[0].keys()
+    stats = {}
+    
+    for metric in metrics:
+        values = [result[metric] for result in all_results]
+        stats[metric] = {
+            'total': sum(values),
+            'mean': np.mean(values),
+            'std': np.std(values),
+            'min': min(values),
+            'max': max(values)
+        }
+    
+    return stats
+
+
+def display_multiple_runs_results(all_results, stats, model_name):
+    """Display results in a new window with scrollable text and export option"""
+    results_window = tk.Toplevel(root)
+    results_window.title(f"Multiple Runs Results - {model_name}")
+    results_window.geometry("900x600")
+    
+    # Create scrolled text widget
+    text_widget = scrolledtext.ScrolledText(results_window, wrap=tk.WORD, width=100, height=30)
+    text_widget.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+    
+    # Build results text
+    results_text = f"Multiple Simulation Runs Results\n"
+    results_text += f"Model: {model_name}\n"
+    results_text += f"Number of Runs: {len(all_results)}\n"
+    results_text += f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    results_text += "="*80 + "\n\n"
+    
+    # Individual run results
+    results_text += "INDIVIDUAL RUN RESULTS:\n"
+    results_text += "-"*80 + "\n"
+    
+    metric_names = [
+        "boredom_maladaptive",
+        "learned_helplessness",
+        "apathy",
+        "positive_mindset",
+        "community_trusting_vulnerability",
+        "fearful_withdrawn_relationship",
+        "detached_withdrawn_relationship",
+        "aggressive_withdrawn_relationship",
+        "willingness_to_flee",
+        "self_destructive_anger",
+        "bully_behavior",
+        "protective_behavior",
+        "healthy_friendliness",
+        "dangerous_trust",
+        "over_friendliness",
+        "hopefulness",
+        "cynical"
+    ]
+    
+    for i, result in enumerate(all_results, 1):
+        results_text += f"\nRun {i}:\n"
+        for metric in metric_names:
+            results_text += f"  {metric}: {result[metric]}\n"
+    
+    # Statistics summary
+    results_text += "\n" + "="*80 + "\n"
+    results_text += "STATISTICS SUMMARY:\n"
+    results_text += "-"*80 + "\n\n"
+    
+    for metric in metric_names:
+        results_text += f"{metric}:\n"
+        results_text += f"  Total:  {stats[metric]['total']:.2f}\n"
+        results_text += f"  Mean:   {stats[metric]['mean']:.2f}\n"
+        results_text += f"  Std:    {stats[metric]['std']:.2f}\n"
+        results_text += f"  Min:    {stats[metric]['min']}\n"
+        results_text += f"  Max:    {stats[metric]['max']}\n\n"
+    
+    text_widget.insert(tk.END, results_text)
+    text_widget.config(state=tk.DISABLED)
+    
+    # Export button
+    def export_to_csv():
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"multiple_runs_{model_name}_{timestamp}.csv"
+        
+        try:
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write header
+                header = ['Run'] + metric_names
+                writer.writerow(header)
+                
+                # Write individual runs
+                for i, result in enumerate(all_results, 1):
+                    row = [i] + [result[metric] for metric in metric_names]
+                    writer.writerow(row)
+                
+                # Write empty row
+                writer.writerow([])
+                
+                # Write statistics
+                writer.writerow(['Statistic'] + metric_names)
+                writer.writerow(['Total'] + [stats[metric]['total'] for metric in metric_names])
+                writer.writerow(['Mean'] + [f"{stats[metric]['mean']:.2f}" for metric in metric_names])
+                writer.writerow(['Std'] + [f"{stats[metric]['std']:.2f}" for metric in metric_names])
+                writer.writerow(['Min'] + [stats[metric]['min'] for metric in metric_names])
+                writer.writerow(['Max'] + [stats[metric]['max'] for metric in metric_names])
+            
+            messagebox.showinfo("Success", f"Results exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export: {str(e)}")
+    
+    export_button = tk.Button(results_window, text="Export to CSV", command=export_to_csv)
+    export_button.pack(pady=5)
+
 
 def start_simulation():
     # Get the values from the Tkinter fields
@@ -75,7 +275,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
          aLowerSitL, aHigherSitL, aLowerSitDB, aHigherSitDB, aLowerSitNB, aHigherSitNB, 
          pLowerSitL, pHigherSitL, pLowerSitDB, pHigherSitDB, pLowerSitNB, pHigherSitNB,
          societyL, societyNB, societyDB,
-         Risk_Aversion, Risk_Threshold, Reward_Inclination, Reward_Threshold, MainB, Training_Episodes, LR, Learning_Period, model_name):
+         Risk_Aversion, Risk_Threshold, Reward_Inclination, Reward_Threshold, MainB, Training_Episodes, LR, Learning_Period, model_name, display_plots=True):
     # Define the character and the initial situation
     absL = 100
     absNB = 100
@@ -121,6 +321,8 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     ally_action_values = []
     prey_action_values = []
     boredom_maladaptive_values = []
+    learned_helplessness_values = []
+    apathy_values = []
     positive_mindset_values = []
     community_trusting_vulnerability_values = []
     fearful_withdrawn_relationship_values = []
@@ -183,6 +385,35 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
             actual_reward = dbReward
         elif type_of_action_stat == "NB":
             actual_reward = nbReward
+
+        #Learned helplessness or apathy actions
+        if np.isnan(estimated_action_reward) and np.isnan(actual_reward):
+            if action == -2:
+                learned_helplessness_values.append({
+                    'sit_type': situation.sitType.value,
+                    'action': action,
+                    'relNB': character.relNB,
+                    'relDB': character.relDB,
+                    'relL': character.relL,
+                    'sitNB': situation.sitNB,
+                    'sitDB': situation.sitDB,
+                    'sitL': situation.sitL,
+                    'estimated_reward': estimated_action_reward,
+                    'actual_reward': actual_reward
+                })
+            if action == -1:
+                apathy_values.append({
+                    'sit_type': situation.sitType.value,
+                    'action': action,
+                    'relNB': character.relNB,
+                    'relDB': character.relDB,
+                    'relL': character.relL,
+                    'sitNB': situation.sitNB,
+                    'sitDB': situation.sitDB,
+                    'sitL': situation.sitL,
+                    'estimated_reward': estimated_action_reward,
+                    'actual_reward': actual_reward
+                })
 
 
         #Maladaptive Behavior because better than boredom
@@ -487,252 +718,303 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         rounds_encountered += 1
 
     
-
-    plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
+    if display_plots:
+        plot_curves(relL_values, relDB_values, relNB_values, sitL_values, sitDB_values, sitNB_values, action_values, survival_rounds_values, lLoss_values, dbLoss_values, nbLoss_values, sit_types, threat_action_values, ally_action_values, prey_action_values)
     
-    pr_guardian_value = len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values)
-    pr_sustainer_value = len(community_trusting_vulnerability_values) + len(willingness_to_flee_values) + len(healthy_friendliness_values)
-    relationship_engaging_value = len(over_friendliness_values) + len(dangerous_trust_values) + len(healthy_friendliness_values)
-    relationship_withdrawn_value = len(fearful_withdrawn_relationship_values) + len(detached_withdrawn_relationship_values) + len(aggressive_withdrawn_relationship_values)
-    drive_productive_value = len(hopefulness_values) + len(positive_mindset_values)
-    drive_destructive_value = len(boredom_maladaptive_values) + len(cynical_values) * 2
+        pr_guardian_value = len(bully_behavior_values) + len(self_destructive_anger_values) + len(protective_behavior_values)
+        pr_sustainer_value = len(community_trusting_vulnerability_values) + len(willingness_to_flee_values) + len(healthy_friendliness_values)
+        relationship_engaging_value = len(over_friendliness_values) + len(dangerous_trust_values) + len(healthy_friendliness_values)
+        relationship_withdrawn_value = len(fearful_withdrawn_relationship_values) + len(detached_withdrawn_relationship_values) + len(aggressive_withdrawn_relationship_values)
+        drive_productive_value = len(hopefulness_values) + len(positive_mindset_values)
+        drive_destructive_value = len(boredom_maladaptive_values) + len(cynical_values) * 2
 
-    display_occurrence_counts_plot(
-    **{
-        "H:Protective Role - Guardian": pr_guardian_value,
-        "Self Destructive Anger": len(self_destructive_anger_values),
-        "Bully Behavior": len(bully_behavior_values),
-        "Protective Behavior": len(protective_behavior_values),
-        "H:Protective Role - Sustainer": pr_sustainer_value,
-        "Community Trusting Vulnerability Values": len(community_trusting_vulnerability_values),
-        "Willingness To Flee": len(willingness_to_flee_values),
-        "Healthy Friendliness (A)": len(healthy_friendliness_values),
-        "H:Relational Style - Engaging": relationship_engaging_value,
-        "Overfriendliness": len(over_friendliness_values),
-        "Dangerous Trust": len(dangerous_trust_values),
-        "Healthy Friendliness (B)": len(healthy_friendliness_values),
-        "H:Relational Style - Withdrawn": relationship_withdrawn_value,
-        "Fearful Relationship Behavior": len(fearful_withdrawn_relationship_values),
-        "Aggressive Relationship Behavior": len(aggressive_withdrawn_relationship_values),
-        "Detached Relationship Behavior": len(detached_withdrawn_relationship_values),
-        "H:Drive Preference - Productive": drive_productive_value,
-        "Hopeful": len(hopefulness_values),
-        "Positive Mindset in Goal Pursuit": len(positive_mindset_values),
-        "H:Drive Preference - Destructive": drive_destructive_value,
-        "Drive Preference - Destructive (original value)": len(boredom_maladaptive_values) + len(cynical_values),
-        "Cynical": len(cynical_values),
-        "Cynical (Weighted Value)": len(cynical_values) * 2,
-        "Maladaptive Behaviors Out Of Boredom": len(boredom_maladaptive_values),
+        display_occurrence_counts_plot(
+        **{
+            "H:Protective Role - Guardian": pr_guardian_value,
+            "Self Destructive Anger": len(self_destructive_anger_values),
+            "Bully Behavior": len(bully_behavior_values),
+            "Protective Behavior": len(protective_behavior_values),
+            "H:Protective Role - Sustainer": pr_sustainer_value,
+            "Community Trusting Vulnerability Values": len(community_trusting_vulnerability_values),
+            "Willingness To Flee": len(willingness_to_flee_values),
+            "Healthy Friendliness (A)": len(healthy_friendliness_values),
+            "H:Relational Style - Engaging": relationship_engaging_value,
+            "Overfriendliness": len(over_friendliness_values),
+            "Dangerous Trust": len(dangerous_trust_values),
+            "Healthy Friendliness (B)": len(healthy_friendliness_values),
+            "H:Relational Style - Withdrawn": relationship_withdrawn_value,
+            "Fearful Relationship Behavior": len(fearful_withdrawn_relationship_values),
+            "Aggressive Relationship Behavior": len(aggressive_withdrawn_relationship_values),
+            "Detached Relationship Behavior": len(detached_withdrawn_relationship_values),
+            "H:Drive Preference - Productive": drive_productive_value,
+            "Hopeful": len(hopefulness_values),
+            "Positive Mindset in Goal Pursuit": len(positive_mindset_values),
+            "H:Drive Preference - Destructive": drive_destructive_value,
+            "Drive Preference - Destructive (original value)": len(boredom_maladaptive_values) + len(cynical_values),
+            "Cynical": len(cynical_values),
+            "Cynical (Weighted Value)": len(cynical_values) * 2,
+            "Maladaptive Behaviors Out Of Boredom": len(boredom_maladaptive_values),
+            "Learned Helplessness": len(learned_helplessness_values),
+            "Apathy": len(apathy_values)
+        }
+    
+        )
+        
+        plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
+        plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
+        plot_complex_psychology_curves(community_trusting_vulnerability_values, "Community Trusting Behavior With Vulnerability")
+        plot_complex_psychology_curves(fearful_withdrawn_relationship_values, "Avoidant Personality Towards Relationships")
+        plot_complex_psychology_curves(willingness_to_flee_values, "Willingness To Flee")
+        plot_complex_psychology_curves(self_destructive_anger_values, "Self Destructive Anger")
+        plot_complex_psychology_curves(bully_behavior_values, "Bully Behavior")
+        plot_complex_psychology_curves(protective_behavior_values, "Protective Behaviors")
+        plot_complex_psychology_curves(healthy_friendliness_values, "Healthy Friendliness")
+        plot_complex_psychology_curves(dangerous_trust_values, "Dangerous Trust")
+        plot_complex_psychology_curves(over_friendliness_values, "Over-friendliness")
+        plot_complex_psychology_curves(hopefulness_values, "Hopeful World Lens")
+        plot_complex_psychology_curves(cynical_values, "Cynical World Lens")
+
+        scores = {
+            "belonging_type": MainB,
+            "pr_guardian": pr_guardian_value,
+            "pr_sustainer": pr_sustainer_value,
+            "relationship_engaging": relationship_engaging_value,
+            "relationship_withdrawn": relationship_withdrawn_value,
+            "drive_productive": drive_productive_value,
+            "drive_destructive": drive_destructive_value
+        }
+
+        advice_df = load_advice_file("advice/advice.csv")
+        filtered_advice = filter_advice(advice_df, scores)
+        export_advice(filtered_advice, filename=f"advice/{model_name}.csv", text_filename=f"advice/{model_name}.txt")
+
+    # Return results for multiple runs functionality
+    return {
+        "boredom_maladaptive": len(boredom_maladaptive_values),
+        "learned_helplessness": len(learned_helplessness_values),
+        "apathy": len(apathy_values),
+        "positive_mindset": len(positive_mindset_values),
+        "community_trusting_vulnerability": len(community_trusting_vulnerability_values),
+        "fearful_withdrawn_relationship": len(fearful_withdrawn_relationship_values),
+        "detached_withdrawn_relationship": len(detached_withdrawn_relationship_values),
+        "aggressive_withdrawn_relationship": len(aggressive_withdrawn_relationship_values),
+        "willingness_to_flee": len(willingness_to_flee_values),
+        "self_destructive_anger": len(self_destructive_anger_values),
+        "bully_behavior": len(bully_behavior_values),
+        "protective_behavior": len(protective_behavior_values),
+        "healthy_friendliness": len(healthy_friendliness_values),
+        "dangerous_trust": len(dangerous_trust_values),
+        "over_friendliness": len(over_friendliness_values),
+        "hopefulness": len(hopefulness_values),
+        "cynical": len(cynical_values)
     }
-    
-    )
-    
-    plot_complex_psychology_curves(boredom_maladaptive_values, "Maladaptive Behaviors Out Of Boredom")
-    plot_complex_psychology_curves(positive_mindset_values, "Positive Mindset In Goal Pursuit")
-    plot_complex_psychology_curves(community_trusting_vulnerability_values, "Community Trusting Behavior With Vulnerability")
-    plot_complex_psychology_curves(fearful_withdrawn_relationship_values, "Avoidant Personality Towards Relationships")
-    plot_complex_psychology_curves(willingness_to_flee_values, "Willingness To Flee")
-    plot_complex_psychology_curves(self_destructive_anger_values, "Self Destructive Anger")
-    plot_complex_psychology_curves(bully_behavior_values, "Bully Behavior")
-    plot_complex_psychology_curves(protective_behavior_values, "Protective Behaviors")
-    plot_complex_psychology_curves(healthy_friendliness_values, "Healthy Friendliness")
-    plot_complex_psychology_curves(dangerous_trust_values, "Dangerous Trust")
-    plot_complex_psychology_curves(over_friendliness_values, "Over-friendliness")
-    plot_complex_psychology_curves(hopefulness_values, "Hopeful World Lens")
-    plot_complex_psychology_curves(cynical_values, "Cynical World Lens")
-
-    scores = {
-        "belonging_type": MainB,
-        "pr_guardian": pr_guardian_value,
-        "pr_sustainer": pr_sustainer_value,
-        "relationship_engaging": relationship_engaging_value,
-        "relationship_withdrawn": relationship_withdrawn_value,
-        "drive_productive": drive_productive_value,
-        "drive_destructive": drive_destructive_value
-    }
-
-    advice_df = load_advice_file("advice/advice.csv")
-    filtered_advice = filter_advice(advice_df, scores)
-    export_advice(filtered_advice, filename=f"advice/{model_name}.csv", text_filename=f"advice/{model_name}.txt")
 
 # Create the main Tkinter window
 root = tk.Tk()
 root.title("Simulation Input")
+root.geometry("800x600")
+
+# Create a canvas and scrollbar
+canvas = tk.Canvas(root)
+scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
+scrollable_frame = tk.Frame(canvas)
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+)
+
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+canvas.configure(yscrollcommand=scrollbar.set)
+
+# Pack the canvas and scrollbar
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
+
+# Enable mouse wheel scrolling
+def _on_mousewheel(event):
+    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
 # Create and place labels and input fields for each value with default values
-tk.Label(root, text="Probability of Threat (0-1)").grid(row=0, column=0)
-prob_threat_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Probability of Threat (0-1)").grid(row=0, column=0)
+prob_threat_entry = tk.Entry(scrollable_frame)
 prob_threat_entry.grid(row=0, column=1)
 prob_threat_entry.insert(0, "0.33")  # Default value for Probability of Threat
 
-tk.Label(root, text="Probability of Ally (0-1)").grid(row=1, column=0)
-prob_ally_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Probability of Ally (0-1)").grid(row=1, column=0)
+prob_ally_entry = tk.Entry(scrollable_frame)
 prob_ally_entry.grid(row=1, column=1)
 prob_ally_entry.insert(0, "0.33")  # Default value for Probability of Ally
 
-tk.Label(root, text="Probability of Prey (0-1)").grid(row=2, column=0)
-prob_prey_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Probability of Prey (0-1)").grid(row=2, column=0)
+prob_prey_entry = tk.Entry(scrollable_frame)
 prob_prey_entry.grid(row=2, column=1)
 prob_prey_entry.insert(0, "0.33")  # Default value for Probability of Prey
 
-tk.Label(root, text="Threat's Livelihood (Lower Bound)").grid(row=3, column=0)
-tLowerSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat's Livelihood (Lower Bound)").grid(row=3, column=0)
+tLowerSitL_entry = tk.Entry(scrollable_frame)
 tLowerSitL_entry.grid(row=3, column=1)
 tLowerSitL_entry.insert(0, "80")  # Default value for Threat's Livelihood Lower Bound
 
-tk.Label(root, text="Threat Livelihood (Upper Bound)").grid(row=4, column=0)
-tHigherSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat Livelihood (Upper Bound)").grid(row=4, column=0)
+tHigherSitL_entry = tk.Entry(scrollable_frame)
 tHigherSitL_entry.grid(row=4, column=1)
 tHigherSitL_entry.insert(0, "100")  # Default value for Threat Livelihood Upper Bound
 
-tk.Label(root, text="Threat Defensive Belonging (Lower Bound)").grid(row=5, column=0)
-tLowerSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat Defensive Belonging (Lower Bound)").grid(row=5, column=0)
+tLowerSitDB_entry = tk.Entry(scrollable_frame)
 tLowerSitDB_entry.grid(row=5, column=1)
 tLowerSitDB_entry.insert(0, "80")  # Default value for Threat Defensive Belonging Lower Bound
 
-tk.Label(root, text="Threat Defensive Belonging (Upper Bound)").grid(row=6, column=0)
-tHigherSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat Defensive Belonging (Upper Bound)").grid(row=6, column=0)
+tHigherSitDB_entry = tk.Entry(scrollable_frame)
 tHigherSitDB_entry.grid(row=6, column=1)
 tHigherSitDB_entry.insert(0, "100")  # Default value for Threat Defensive Belonging Upper Bound
 
-tk.Label(root, text="Threat Nurturing Belonging (Lower Bound)").grid(row=7, column=0)
-tLowerSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat Nurturing Belonging (Lower Bound)").grid(row=7, column=0)
+tLowerSitNB_entry = tk.Entry(scrollable_frame)
 tLowerSitNB_entry.grid(row=7, column=1)
 tLowerSitNB_entry.insert(0, "80")  # Default value for Threat Nurturing Belonging Lower Bound
 
-tk.Label(root, text="Threat Nurturing Belonging (Upper Bound)").grid(row=8, column=0)
-tHigherSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Threat Nurturing Belonging (Upper Bound)").grid(row=8, column=0)
+tHigherSitNB_entry = tk.Entry(scrollable_frame)
 tHigherSitNB_entry.grid(row=8, column=1)
 tHigherSitNB_entry.insert(0, "100")  # Default value for Threat Nurturing Belonging Upper Bound
 
-tk.Label(root, text="Ally Livelihood (Lower Bound)").grid(row=9, column=0)
-aLowerSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Livelihood (Lower Bound)").grid(row=9, column=0)
+aLowerSitL_entry = tk.Entry(scrollable_frame)
 aLowerSitL_entry.grid(row=9, column=1)
 aLowerSitL_entry.insert(0, "80")  # Default value for Ally Livelihood Lower Bound
 
-tk.Label(root, text="Ally Livelihood (Upper Bound)").grid(row=10, column=0)
-aHigherSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Livelihood (Upper Bound)").grid(row=10, column=0)
+aHigherSitL_entry = tk.Entry(scrollable_frame)
 aHigherSitL_entry.grid(row=10, column=1)
 aHigherSitL_entry.insert(0, "100")  # Default value for Ally Livelihood Upper Bound
 
-tk.Label(root, text="Ally Defensive Belonging (Lower Bound)").grid(row=11, column=0)
-aLowerSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Defensive Belonging (Lower Bound)").grid(row=11, column=0)
+aLowerSitDB_entry = tk.Entry(scrollable_frame)
 aLowerSitDB_entry.grid(row=11, column=1)
 aLowerSitDB_entry.insert(0, "80")  # Default value for Ally Defensive Belonging Lower Bound
 
-tk.Label(root, text="Ally Defensive Belonging (Upper Bound)").grid(row=12, column=0)
-aHigherSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Defensive Belonging (Upper Bound)").grid(row=12, column=0)
+aHigherSitDB_entry = tk.Entry(scrollable_frame)
 aHigherSitDB_entry.grid(row=12, column=1)
 aHigherSitDB_entry.insert(0, "100")  # Default value for Ally Defensive Belonging Upper Bound
 
-tk.Label(root, text="Ally Nurturing Belonging (Lower Bound)").grid(row=13, column=0)
-aLowerSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Nurturing Belonging (Lower Bound)").grid(row=13, column=0)
+aLowerSitNB_entry = tk.Entry(scrollable_frame)
 aLowerSitNB_entry.grid(row=13, column=1)
 aLowerSitNB_entry.insert(0, "80")  # Default value for Ally Nurturing Belonging Lower Bound
 
-tk.Label(root, text="Ally Nurturing Belonging (Upper Bound)").grid(row=14, column=0)
-aHigherSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Ally Nurturing Belonging (Upper Bound)").grid(row=14, column=0)
+aHigherSitNB_entry = tk.Entry(scrollable_frame)
 aHigherSitNB_entry.grid(row=14, column=1)
 aHigherSitNB_entry.insert(0, "100")  # Default value for Ally Nurturing Belonging Upper Bound
 
-tk.Label(root, text="Prey Livelihood (Lower Bound)").grid(row=15, column=0)
-pLowerSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Livelihood (Lower Bound)").grid(row=15, column=0)
+pLowerSitL_entry = tk.Entry(scrollable_frame)
 pLowerSitL_entry.grid(row=15, column=1)
 pLowerSitL_entry.insert(0, "80")  # Default value for Ally Livelihood Lower Bound
 
-tk.Label(root, text="Prey Livelihood (Upper Bound)").grid(row=16, column=0)
-pHigherSitL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Livelihood (Upper Bound)").grid(row=16, column=0)
+pHigherSitL_entry = tk.Entry(scrollable_frame)
 pHigherSitL_entry.grid(row=16, column=1)
 pHigherSitL_entry.insert(0, "100")  # Default value for Ally Livelihood Upper Bound
 
-tk.Label(root, text="Prey Defensive Belonging (Lower Bound)").grid(row=17, column=0)
-pLowerSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Defensive Belonging (Lower Bound)").grid(row=17, column=0)
+pLowerSitDB_entry = tk.Entry(scrollable_frame)
 pLowerSitDB_entry.grid(row=17, column=1)
 pLowerSitDB_entry.insert(0, "80")  # Default value for Ally Defensive Belonging Lower Bound
 
-tk.Label(root, text="Prey Defensive Belonging (Upper Bound)").grid(row=18, column=0)
-pHigherSitDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Defensive Belonging (Upper Bound)").grid(row=18, column=0)
+pHigherSitDB_entry = tk.Entry(scrollable_frame)
 pHigherSitDB_entry.grid(row=18, column=1)
 pHigherSitDB_entry.insert(0, "100")  # Default value for Ally Defensive Belonging Upper Bound
 
-tk.Label(root, text="Prey Nurturing Belonging (Lower Bound)").grid(row=19, column=0)
-pLowerSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Nurturing Belonging (Lower Bound)").grid(row=19, column=0)
+pLowerSitNB_entry = tk.Entry(scrollable_frame)
 pLowerSitNB_entry.grid(row=19, column=1)
 pLowerSitNB_entry.insert(0, "80")  # Default value for Ally Nurturing Belonging Lower Bound
 
-tk.Label(root, text="Prey Nurturing Belonging (Upper Bound)").grid(row=20, column=0)
-pHigherSitNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Prey Nurturing Belonging (Upper Bound)").grid(row=20, column=0)
+pHigherSitNB_entry = tk.Entry(scrollable_frame)
 pHigherSitNB_entry.grid(row=20, column=1)
 pHigherSitNB_entry.insert(0, "100")  # Default value for Ally Nurturing Belonging Upper Bound
 
-tk.Label(root, text="Society's Livelihood").grid(row=21, column=0)
-societyL_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Society's Livelihood").grid(row=21, column=0)
+societyL_entry = tk.Entry(scrollable_frame)
 societyL_entry.grid(row=21, column=1)
 societyL_entry.insert(0, "70") 
 
-tk.Label(root, text="Society's Nurturing Belonging").grid(row=22, column=0)
-societyNB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Society's Nurturing Belonging").grid(row=22, column=0)
+societyNB_entry = tk.Entry(scrollable_frame)
 societyNB_entry.grid(row=22, column=1)
 societyNB_entry.insert(0, "70") 
 
-tk.Label(root, text="Society's Defensive Belonging").grid(row=23, column=0)
-societyDB_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Society's Defensive Belonging").grid(row=23, column=0)
+societyDB_entry = tk.Entry(scrollable_frame)
 societyDB_entry.grid(row=23, column=1)
 societyDB_entry.insert(0, "70") 
 
 # Add the new fields for Risk_Aversion, Risk_Threshold, MainB, Training_Episodes, LR
-tk.Label(root, text="Risk Aversion (1 is neutral, <1 is inclined to risk, >1 is risk averse)").grid(row=24, column=0)
-risk_aversion_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Risk Aversion (1 is neutral, <1 is inclined to risk, >1 is risk averse)").grid(row=24, column=0)
+risk_aversion_entry = tk.Entry(scrollable_frame)
 risk_aversion_entry.grid(row=24, column=1)
 risk_aversion_entry.insert(0, "1.2")  # Default value for Risk Aversion
 
-tk.Label(root, text="Risk Threshold (How risky an situation is to consider the risk. 10 = normal)").grid(row=25, column=0)
-risk_threshold_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Risk Threshold (How risky an situation is to consider the risk. 10 = normal)").grid(row=25, column=0)
+risk_threshold_entry = tk.Entry(scrollable_frame)
 risk_threshold_entry.grid(row=25, column=1)
 risk_threshold_entry.insert(0, "10")  # Default value for Risk Threshold
 
-tk.Label(root, text="Reward Inclination (1 is neutral, <1 is reward averse, >1 is inclined to reward)").grid(row=26, column=0)
-reward_inclination_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Reward Inclination (1 is neutral, <1 is reward averse, >1 is inclined to reward)").grid(row=26, column=0)
+reward_inclination_entry = tk.Entry(scrollable_frame)
 reward_inclination_entry.grid(row=26, column=1)
 reward_inclination_entry.insert(0, "1")  
 
-tk.Label(root, text="Reward Threshold (How rewarding a situation is to consider it. 0 = normal)").grid(row=27, column=0)
-reward_threshold_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Reward Threshold (How rewarding a situation is to consider it. 0 = normal)").grid(row=27, column=0)
+reward_threshold_entry = tk.Entry(scrollable_frame)
 reward_threshold_entry.grid(row=27, column=1)
 reward_threshold_entry.insert(0, "0")  # Default value for Risk Threshold
 
-tk.Label(root, text="Learning Period (How many situations it will go through picking random actions)").grid(row=28, column=0)
-learning_period_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Learning Period (How many situations it will go through picking random actions)").grid(row=28, column=0)
+learning_period_entry = tk.Entry(scrollable_frame)
 learning_period_entry.grid(row=28, column=1)
 learning_period_entry.insert(0, "600")  # Default value for Learning Rate (LR)
 
-tk.Label(root, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=29, column=0)
-training_episodes_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Training Episodes (How many times it encounters a situation including the learning period)").grid(row=29, column=0)
+training_episodes_entry = tk.Entry(scrollable_frame)
 training_episodes_entry.grid(row=29, column=1)
 training_episodes_entry.insert(0, "1500")  # Default value for Training Episodes
 
-tk.Label(root, text="Learning Rate (LR of the neural network)").grid(row=30, column=0)
-lr_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text="Learning Rate (LR of the neural network)").grid(row=30, column=0)
+lr_entry = tk.Entry(scrollable_frame)
 lr_entry.grid(row=30, column=1)
 lr_entry.insert(0, "0.001")  # Default value for Learning Rate (LR)
 
 # Add a dropdown for MainB selection (NB or DB)
-tk.Label(root, text="Agent's Belonging Type Selection (NB or DB)").grid(row=31, column=0)
+tk.Label(scrollable_frame, text="Agent's Belonging Type Selection (NB or DB)").grid(row=31, column=0)
 mainB_var = tk.StringVar(root)
 mainB_var.set("NB")  # Default value for MainB
-mainB_dropdown = tk.OptionMenu(root, mainB_var, "NB", "DB")
+mainB_dropdown = tk.OptionMenu(scrollable_frame, mainB_var, "NB", "DB")
 mainB_dropdown.grid(row=31, column=1)
 
 # Create a button to start the simulation
-start_button = tk.Button(root, text="Start Simulation", command=start_simulation)
+start_button = tk.Button(scrollable_frame, text="Start Simulation", command=start_simulation)
 start_button.grid(row=32, column=0, columnspan=2)
 
-tk.Label(root, text = "Model Name").grid(row = 33, column = 0)
-model_name_entry = tk.Entry(root)
+tk.Label(scrollable_frame, text = "Model Name").grid(row = 33, column = 0)
+model_name_entry = tk.Entry(scrollable_frame)
 model_name_entry.grid(row = 33, column = 1)
 model_name_entry.insert(0, "default_model")
 
-mainB_entry = tk.Entry(root)  # create a hidden entry
+tk.Label(scrollable_frame, text="Number of Runs (for multiple simulations)").grid(row=36, column=0)
+num_runs_entry = tk.Entry(scrollable_frame)
+num_runs_entry.grid(row=36, column=1)
+num_runs_entry.insert(0, "10")
+
+mainB_entry = tk.Entry(scrollable_frame)  # create a hidden entry
 mainB_entry.pack_forget()     # hide it so it doesn’t show in UI
 # Build a dictionary to pass to save the stats
 stats_entries = {
@@ -770,7 +1052,7 @@ stats_entries = {
     "Learning_Rate": lr_entry
 }
 
-quiz_button = tk.Button(root, text="Personality Test", command= lambda: run_quiz(root, stats_entries, mainB_var))
+quiz_button = tk.Button(scrollable_frame, text="Personality Test", command= lambda: run_quiz(root, stats_entries, mainB_var))
 quiz_button.grid(row=34, column=0, columnspan=2)
 
 
@@ -816,10 +1098,10 @@ def load_model():
         messagebox.showerror("Error", f"Failed to load model: {str(e)}")
 
 
-save_button = tk.Button(root, text="Save Model", command=save_model)
+save_button = tk.Button(scrollable_frame, text="Save Model", command=save_model)
 save_button.grid(row=34, column=0)
 
-load_button = tk.Button(root, text="Load Model", command=load_model)
+load_button = tk.Button(scrollable_frame, text="Load Model", command=load_model)
 load_button.grid(row=34, column=1)
 
 def load_saved_stats(model_name):
@@ -891,8 +1173,11 @@ def predict_action():
     else:
         predict_button.config(text = "Predict Action Mode")
 
-predict_button = tk.Button(root, text = "Predict Action Mode", command = predict_action)
+predict_button = tk.Button(scrollable_frame, text = "Predict Action Mode", command = predict_action)
 predict_button.grid(row=35, column=0)
+
+multiple_runs_button = tk.Button(scrollable_frame, text="Run Multiple Simulations", command=run_multiple_simulations)
+multiple_runs_button.grid(row=37, column=0, columnspan=2)
 
 
 # Start the Tkinter event loop

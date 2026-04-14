@@ -1,0 +1,33 @@
+================================================================================
+GEE Model Summary: maladaptive_pct ~ role + condition + role:condition
+================================================================================
+                               GEE Regression Results                              
+===================================================================================
+Dep. Variable:             maladaptive_pct   No. Observations:                 1200
+Model:                                 GEE   No. clusters:                       12
+Method:                        Generalized   Min. cluster size:                 100
+                      Estimating Equations   Max. cluster size:                 100
+Family:                           Gaussian   Mean cluster size:               100.0
+Dependence structure:         Exchangeable   Num. iterations:                     2
+Date:                     Thu, 09 Apr 2026   Scale:                          63.481
+Covariance type:                    robust   Time:                         04:07:25
+==========================================================================================================
+                                             coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------------------------------
+Intercept                                 47.2115      0.274    172.568      0.000      46.675      47.748
+C(role)[T.NB]                            -31.4620      0.279   -112.800      0.000     -32.009     -30.915
+C(condition)[T.Moderate]                  -1.8673      0.282     -6.616      0.000      -2.420      -1.314
+C(condition)[T.No ACE]                    -2.2887      0.274     -8.346      0.000      -2.826      -1.751
+C(role)[T.NB]:C(condition)[T.Moderate]     4.2456      0.317     13.383      0.000       3.624       4.867
+C(role)[T.NB]:C(condition)[T.No ACE]       4.9832      0.280     17.823      0.000       4.435       5.531
+==============================================================================
+Skew:                         -0.7949   Kurtosis:                       2.0514
+Centered skew:                -0.7915   Centered kurtosis:              2.0365
+==============================================================================
+
+Key Interpretation:
+- C(role)[T.DB]: Effect of DB vs NB (intercept NB at No ACE condition)
+- C(condition)[T.Moderate]: Effect of Moderate vs No ACE (for NB)
+- C(condition)[T.ACE]: Effect of ACE vs No ACE (for NB)
+- Interaction terms: Whether role effect differs across conditions
+================================================================================

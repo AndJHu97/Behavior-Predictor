@@ -1,7 +1,29 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
 plt.show()
+
+def compute_rolling_mean_ci95(values, window=50):
+    """
+    Compute rolling mean and 95% CI for a list of values.
+    Returns: (timestamps, means, ci_lower, ci_upper)
+    """
+    if len(values) < window:
+        window = max(1, len(values) // 5)
+    
+    values_arr = np.array(values)
+    rolling_mean = pd.Series(values_arr).rolling(window=window, center=True).mean()
+    rolling_std = pd.Series(values_arr).rolling(window=window, center=True).std()
+    
+    # 95% CI half-width
+    ci_half = 1.96 * rolling_std / np.sqrt(window)
+    
+    timestamps = np.arange(len(values))
+    ci_lower = rolling_mean - ci_half
+    ci_upper = rolling_mean + ci_half
+    
+    return timestamps, rolling_mean, ci_lower, ci_upper
 
 def plot_curves(
     relL_values, relDB_values, relNB_values,
@@ -45,16 +67,31 @@ def plot_curves(
     plt.title('Rounds Survived')
 
     plt.subplot(6, 3, 9)
-    plt.scatter(range(len(lLoss_values)), lLoss_values, color= 'brown')
-    plt.title('Livelihood Loss')
+    time_l, mean_l, ci_lower_l, ci_upper_l = compute_rolling_mean_ci95(lLoss_values, window=50)
+    plt.plot(time_l, mean_l, color='brown', linewidth=2, label='Mean Loss')
+    plt.fill_between(time_l, ci_lower_l, ci_upper_l, color='brown', alpha=0.3, label='95% CI')
+    plt.title('Livelihood Loss (Rolling Mean ± 95% CI)')
+    plt.ylabel('Loss')
+    plt.xlabel('Episode')
+    plt.legend(fontsize=8)
 
     plt.subplot(6, 3, 10)
-    plt.scatter(range(len(dbLoss_values)), dbLoss_values, color='navy')
-    plt.title('Defensive Belonging Loss')
+    time_db, mean_db, ci_lower_db, ci_upper_db = compute_rolling_mean_ci95(dbLoss_values, window=50)
+    plt.plot(time_db, mean_db, color='navy', linewidth=2, label='Mean Loss')
+    plt.fill_between(time_db, ci_lower_db, ci_upper_db, color='navy', alpha=0.3, label='95% CI')
+    plt.title('Defensive Belonging Loss (Rolling Mean ± 95% CI)')
+    plt.ylabel('Loss')
+    plt.xlabel('Episode')
+    plt.legend(fontsize=8)
 
     plt.subplot(6, 3, 11)
-    plt.scatter(range(len(nbLoss_values)), nbLoss_values, color = 'lightgreen')
-    plt.title('Nurturing Belonging Loss')
+    time_nb, mean_nb, ci_lower_nb, ci_upper_nb = compute_rolling_mean_ci95(nbLoss_values, window=50)
+    plt.plot(time_nb, mean_nb, color='lightgreen', linewidth=2, label='Mean Loss')
+    plt.fill_between(time_nb, ci_lower_nb, ci_upper_nb, color='lightgreen', alpha=0.3, label='95% CI')
+    plt.title('Nurturing Belonging Loss (Rolling Mean ± 95% CI)')
+    plt.ylabel('Loss')
+    plt.xlabel('Episode')
+    plt.legend(fontsize=8)
 
     plt.subplot(6, 3, 12)
     plt.scatter(range(len(sit_type)), sit_type)

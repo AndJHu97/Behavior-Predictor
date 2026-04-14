@@ -1,0 +1,13 @@
+action,comparison,global_test,global_statistic,global_p_value,test_used,test_statistic,p_value_raw,p_value_holm,significant_alpha_0_05,n_random,n_no_ace,n_moderate_adversity,n_ace,random_shapiro_p,no_ace_shapiro_p,moderate_adversity_shapiro_p,ace_shapiro_p
+fight_count,Random_vs_No ACE,Kruskal-Wallis,0.36363636363636687,0.9476475533646884,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.11346984065436921,,,
+fight_count,Random_vs_Moderate adversity,Kruskal-Wallis,0.36363636363636687,0.9476475533646884,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.11346984065436921,,,
+fight_count,Random_vs_ACE,Kruskal-Wallis,0.36363636363636687,0.9476475533646884,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.11346984065436921,,,
+flee_count,Random_vs_No ACE,Kruskal-Wallis,0.0,1.0,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.4258103064179735,,,
+flee_count,Random_vs_Moderate adversity,Kruskal-Wallis,0.0,1.0,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.4258103064179735,,,
+flee_count,Random_vs_ACE,Kruskal-Wallis,0.0,1.0,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.4258103064179735,,,
+cry_count,Random_vs_No ACE,Kruskal-Wallis,4.63636363636364,0.2004447297318365,Mann-Whitney U (Dunn-style control comparisons),10.0,0.09523809523809523,0.2857142857142857,False,5,2,2,2,0.18319576147963518,,,
+cry_count,Random_vs_Moderate adversity,Kruskal-Wallis,4.63636363636364,0.2004447297318365,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.18319576147963518,,,
+cry_count,Random_vs_ACE,Kruskal-Wallis,4.63636363636364,0.2004447297318365,Mann-Whitney U (Dunn-style control comparisons),10.0,0.09523809523809523,0.2857142857142857,False,5,2,2,2,0.18319576147963518,,,
+chase_count,Random_vs_No ACE,Kruskal-Wallis,2.863636363636367,0.41313108847089774,Mann-Whitney U (Dunn-style control comparisons),0.0,0.09523809523809523,0.2857142857142857,False,5,2,2,2,0.22003869695350026,,,
+chase_count,Random_vs_Moderate adversity,Kruskal-Wallis,2.863636363636367,0.41313108847089774,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.22003869695350026,,,
+chase_count,Random_vs_ACE,Kruskal-Wallis,2.863636363636367,0.41313108847089774,Mann-Whitney U (Dunn-style control comparisons),5.0,1.0,1.0,False,5,2,2,2,0.22003869695350026,,,

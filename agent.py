@@ -87,7 +87,62 @@ class Agent:
         self.selectedBType = ""
     
     #select actions and save the l and b models being used
-    def select_action(self, character, state, rounds_encountered):
+    def select_action(self, character, state, rounds_encountered, is_random = False):
+
+        #Agent is randomly selecting for all and calculates the reward expectation of this random action (takes the largest from L and main B for reward)
+        if is_random:
+            move = random.choice(self.actions)
+            if move == Action.Fight:
+                self.set_selected_models("Fight")
+            elif move == Action.Flee:
+                self.set_selected_models("Flee")
+            elif move == Action.Befriend:
+                self.set_selected_models("Befriend")
+            elif move == Action.Chase:
+                self.set_selected_models("Chase")
+            elif move == Action.Cry:
+                self.set_selected_models("Cry")
+            
+            state_tensor = torch.tensor(state, dtype=torch.float)  
+            predictions = {
+                "Fight": {
+                    "L": self.lFightModel(state_tensor),
+                    "NB": self.nbFightModel(state_tensor),
+                    "DB": self.dbFightModel(state_tensor)
+                },
+                "Flee": {
+                    "L": self.lFleeModel(state_tensor),
+                    "NB": self.nbFleeModel(state_tensor),
+                    "DB": self.dbFleeModel(state_tensor)
+                },
+                "Befriend": {
+                    "L": self.lBefriendModel(state_tensor),
+                    "NB": self.nbBefriendModel(state_tensor),
+                    "DB": self.dbBefriendModel(state_tensor)
+                },
+                "Chase": {
+                    "L": self.lChaseModel(state_tensor),
+                    "NB": self.nbChaseModel(state_tensor),
+                    "DB": self.dbChaseModel(state_tensor)
+                },
+                "Cry": {
+                    "L": self.lCryModel(state_tensor),
+                    "NB": self.nbCryModel(state_tensor),
+                    "DB": self.dbCryModel(state_tensor)
+                }
+            }
+
+            # Keep action random, but evaluate the chosen action using exploitation-style model selection.
+            action_name = move.name
+            relevant_predictions = [
+                ("L", predictions[action_name]["L"]),
+                (character.mainB, predictions[action_name][character.mainB])
+            ]
+            type_of_action, selected_reward = max(relevant_predictions, key=lambda x: x[1])
+            value_of_action = selected_reward.item()
+
+            return move.value, value_of_action, type_of_action
+    
     # Implementing epsilon-greedy policy
         if random.randint(0, self.Learning_Period) < self.Learning_Period - rounds_encountered:
             # Exploration: Random action

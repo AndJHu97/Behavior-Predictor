@@ -1,0 +1,6 @@
+behavior_key,behavior,chi2,p_value_raw,dof,cramers_v,significant_0_05,p_value_holm,significant_holm_0_05
+protective_behavior,Protective Behavior,7.226666666666667,0.026961824164653078,2,0.07760297817881877,True,0.026961824164653078,True
+healthy_friendliness,Healthy Friendliness,147.44,9.634092107217112e-33,2,0.3505234181430203,True,3.853636842886845e-32,True
+willingness_to_flee,Adaptive Avoidance,45.30666666666667,1.4513840183528045e-10,2,0.19430788855719563,True,2.902768036705609e-10,True
+community_trusting_vulnerability,Help-Seeking Vulnerability,49.78666666666666,1.5451217187379056e-11,2,0.2036882148993625,True,4.6353651562137166e-11,True
+hopefulness,Positive Expectancy,169.9466666666667,1.2489648739962681e-37,2,0.3763272807307786,True,6.244824369981341e-37,True

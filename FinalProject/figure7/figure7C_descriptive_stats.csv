@@ -1,0 +1,9 @@
+behavior_key,behavior,denominator,group,n,mean_pct,std_pct,median_pct,q1_pct,q3_pct
+bully_behavior_pct,Misdirected aggression,total_complex_behaviors,resilient,296,22.825743155363245,5.14332503805621,23.597666371558013,19.77844258945771,26.270911174017975
+bully_behavior_pct,Misdirected aggression,total_complex_behaviors,vulnerable,704,32.29081496299761,8.469311208347952,31.99039239535451,25.493246268906105,39.154108900944344
+aggressive_withdrawn_relationship_pct,Relational aggression,total_complex_behaviors,resilient,296,5.12443921927545,5.721412337114266,4.100904489254004,2.0367889316747405,7.425790420571344
+aggressive_withdrawn_relationship_pct,Relational aggression,total_complex_behaviors,vulnerable,704,31.828597950618885,9.34901925978711,34.20837467386911,26.502666357523765,39.17052399494572
+dangerous_trust_pct,Dangerous trust,total_complex_behaviors,resilient,296,3.605859358435255,0.7778385757504906,3.5431211958467594,3.079520680560426,4.113988724453841
+dangerous_trust_pct,Dangerous trust,total_complex_behaviors,vulnerable,704,2.849889163462624,0.702462903388291,2.802731227844022,2.4014756065820295,3.310100701325007
+negative_expectancy_pct,Negative expectancy,hopefulness + cynical + learned_helplessness,resilient,296,17.349953723278922,5.04109789856843,17.149958574979287,13.717256777187863,20.121570458547342
+negative_expectancy_pct,Negative expectancy,hopefulness + cynical + learned_helplessness,vulnerable,704,37.6486423645519,5.205967818682424,38.33403176609602,35.17820579997432,41.04918074047973

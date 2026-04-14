@@ -1,0 +1,25 @@
+MANOVA on maladaptive complex-behavior percentages
+Dependent variables: bully_behavior_pct, aggressive_withdrawn_relationship_pct, dangerous_trust_pct
+Predictor: latent_group (resilient/vulnerable)
+
+                   Multivariate linear model
+================================================================
+                                                                
+----------------------------------------------------------------
+       Intercept         Value  Num DF  Den DF   F Value  Pr > F
+----------------------------------------------------------------
+          Wilks' lambda  0.0473 3.0000 996.0000 6689.6918 0.0000
+         Pillai's trace  0.9527 3.0000 996.0000 6689.6918 0.0000
+ Hotelling-Lawley trace 20.1497 3.0000 996.0000 6689.6918 0.0000
+    Roy's greatest root 20.1497 3.0000 996.0000 6689.6918 0.0000
+----------------------------------------------------------------
+                                                                
+----------------------------------------------------------------
+        group_code       Value  Num DF  Den DF   F Value  Pr > F
+----------------------------------------------------------------
+           Wilks' lambda 0.2427 3.0000 996.0000 1036.1317 0.0000
+          Pillai's trace 0.7573 3.0000 996.0000 1036.1317 0.0000
+  Hotelling-Lawley trace 3.1209 3.0000 996.0000 1036.1317 0.0000
+     Roy's greatest root 3.1209 3.0000 996.0000 1036.1317 0.0000
+================================================================
+

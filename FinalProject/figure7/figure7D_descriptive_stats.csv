@@ -1,0 +1,5 @@
+behavior_key,behavior,denominator,group,n,mean_pct,std_pct,median_pct,q1_pct,q3_pct
+protective_behavior_pct,Protective behavior,total_complex_behaviors,resilient,296,31.637100294368032,3.5110959690108587,31.69859975415531,29.979998243442182,33.69163465241446
+protective_behavior_pct,Protective behavior,total_complex_behaviors,vulnerable,704,7.9188672946860725,6.289579071013082,5.541995948485688,4.282520401943915,8.418774884169064
+positive_expectancy_pct,Positive expectancy,hopefulness + cynical + learned_helplessness,resilient,296,82.65004627672108,5.04109789856843,82.85004142502072,79.87842954145265,86.28274322281214
+positive_expectancy_pct,Positive expectancy,hopefulness + cynical + learned_helplessness,vulnerable,704,62.3513576354481,5.205967818682424,61.66596823390399,58.95081925952027,64.82179420002566

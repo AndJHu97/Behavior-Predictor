@@ -94,9 +94,45 @@ def run_multiple_simulations():
 
     # Calculate statistics
     stats = calculate_statistics(all_results)
+
+    parameters = {
+        "Prob_threat": prob_threat,
+        "Prob_ally": prob_ally,
+        "Prob_prey": prob_prey,
+        "tLowerSitL": tLowerSitL,
+        "tHigherSitL": tHigherSitL,
+        "tLowerSitDB": tLowerSitDB,
+        "tHigherSitDB": tHigherSitDB,
+        "tLowerSitNB": tLowerSitNB,
+        "tHigherSitNB": tHigherSitNB,
+        "aLowerSitL": aLowerSitL,
+        "aHigherSitL": aHigherSitL,
+        "aLowerSitDB": aLowerSitDB,
+        "aHigherSitDB": aHigherSitDB,
+        "aLowerSitNB": aLowerSitNB,
+        "aHigherSitNB": aHigherSitNB,
+        "pLowerSitL": pLowerSitL,
+        "pHigherSitL": pHigherSitL,
+        "pLowerSitDB": pLowerSitDB,
+        "pHigherSitDB": pHigherSitDB,
+        "pLowerSitNB": pLowerSitNB,
+        "pHigherSitNB": pHigherSitNB,
+        "societyL": societyL,
+        "societyNB": societyNB,
+        "societyDB": societyDB,
+        "Risk_Aversion": Risk_Aversion,
+        "Risk_Threshold": Risk_Threshold,
+        "Reward_Inclination": Reward_Inclination,
+        "Reward_Threshold": Reward_Threshold,
+        "MainB": MainB,
+        "Training_Episodes": Training_Episodes,
+        "Learning_Period": Learning_Period,
+        "Learning_Rate": Lr,
+        "Model_Name": model_name
+    }
     
     # Display results
-    display_multiple_runs_results(all_results, stats, model_name)
+    display_multiple_runs_results(all_results, stats, model_name, parameters)
 
 
 def calculate_statistics(all_results):
@@ -120,7 +156,22 @@ def calculate_statistics(all_results):
     return stats
 
 
-def display_multiple_runs_results(all_results, stats, model_name):
+def calculate_mean_ci95(values):
+    """Return (mean, ci95_half_width) for a numeric list."""
+    clean_values = [v for v in values if not np.isnan(v)]
+    if not clean_values:
+        return 0.0, 0.0
+
+    mean_val = float(np.mean(clean_values))
+    if len(clean_values) < 2:
+        return mean_val, 0.0
+
+    std_val = float(np.std(clean_values, ddof=1))
+    ci95 = 1.96 * (std_val / np.sqrt(len(clean_values)))
+    return mean_val, float(ci95)
+
+
+def display_multiple_runs_results(all_results, stats, model_name, parameters):
     """Display results in a new window with scrollable text and export option"""
     results_window = tk.Toplevel(root)
     results_window.title(f"Multiple Runs Results - {model_name}")
@@ -136,12 +187,32 @@ def display_multiple_runs_results(all_results, stats, model_name):
     results_text += f"Number of Runs: {len(all_results)}\n"
     results_text += f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
     results_text += "="*80 + "\n\n"
+
+    # Simulation parameters
+    results_text += "PARAMETERS:\n"
+    results_text += "-"*80 + "\n"
+    for param_name, param_value in parameters.items():
+        results_text += f"Parameter: {param_name} = {param_value}\n"
+    results_text += "\n"
     
     # Individual run results
     results_text += "INDIVIDUAL RUN RESULTS:\n"
     results_text += "-"*80 + "\n"
     
     metric_names = [
+        "fight_count",
+        "flee_count",
+        "befriend_count",
+        "chase_count",
+        "cry_count",
+        "fight_exploit_count",
+        "flee_exploit_count",
+        "befriend_exploit_count",
+        "chase_exploit_count",
+        "cry_exploit_count",
+        "threat_count",
+        "ally_count",
+        "prey_count",
         "boredom_maladaptive",
         "learned_helplessness",
         "apathy",
@@ -158,7 +229,13 @@ def display_multiple_runs_results(all_results, stats, model_name):
         "dangerous_trust",
         "over_friendliness",
         "hopefulness",
-        "cynical"
+        "cynical",
+        "l_loss_mean",
+        "l_loss_ci95",
+        "db_loss_mean",
+        "db_loss_ci95",
+        "nb_loss_mean",
+        "nb_loss_ci95"
     ]
     
     for i, result in enumerate(all_results, 1):
@@ -190,6 +267,14 @@ def display_multiple_runs_results(all_results, stats, model_name):
         try:
             with open(filename, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
+
+                # Write parameters
+                writer.writerow(['Parameter', 'Value'])
+                for param_name, param_value in parameters.items():
+                    writer.writerow([f"Parameter: {param_name}", param_value])
+
+                # Write empty row
+                writer.writerow([])
                 
                 # Write header
                 header = ['Run'] + metric_names
@@ -337,13 +422,18 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     over_friendliness_values = []
     hopefulness_values = []
     cynical_values = []
+    fight_exploit_values = []
+    flee_exploit_values = []
+    befriend_exploit_values = []
+    chase_exploit_values = []
+    cry_exploit_values = []
 
     rounds_encountered = 0
     for episode in range(Training_Episodes):
         state = agent.get_state(character, situation)
 
         #if estimated_action_reward is np.nan, this means it is a random selection
-        action, estimated_action_reward, type_of_action_stat = agent.select_action(character, state, rounds_encountered)
+        action, estimated_action_reward, type_of_action_stat = agent.select_action(character, state, rounds_encountered, False)
 
         relL_values.append(character.relL)
         relNB_values.append(character.relNB)
@@ -373,8 +463,6 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         nbLoss_values.append(blStore[2])
         agent.remember(state, action, lReward, dbReward, nbReward, agent.lSelectedActionModel, agent.dbSelectedActionModel, agent.nbSelectedActionModel)
         #character.set_stats(character.relL + 5, character.relDB, character.relNB)
-       
-        #COMPLEX PSYCHOLOGY
 
         #Get actual rewards
         #If actual_reward = np.nan then type_of_action is none and is due to depression or helplessness or random
@@ -385,6 +473,22 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
             actual_reward = dbReward
         elif type_of_action_stat == "NB":
             actual_reward = nbReward
+
+        #simple action (exploitative only)
+
+        if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
+            if action == Action.Fight.value:
+                fight_exploit_values.append(action)
+            elif action == Action.Flee.value:
+                flee_exploit_values.append(action)
+            elif action == Action.Befriend.value:
+                befriend_exploit_values.append(action)
+            elif action == Action.Chase.value:
+                chase_exploit_values.append(action)
+            elif action == Action.Cry.value:
+                cry_exploit_values.append(action)
+
+        #COMPLEX PSYCHOLOGY
 
         #Learned helplessness or apathy actions
         if np.isnan(estimated_action_reward) and np.isnan(actual_reward):
@@ -435,7 +539,7 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
 
         #Positive/Optimistic Mindset. Prey, Chase, and estimated reward < actual reward
         if situation.sitType.value == 2 and action == 3:
-            if not np.isnan(actual_reward) and not np.isnan(actual_reward):
+            if not np.isnan(estimated_action_reward) and not np.isnan(actual_reward):
                 if actual_reward > estimated_action_reward and estimated_action_reward > 0:
                     positive_mindset_values.append({
                         'sit_type': situation.sitType.value,
@@ -788,8 +892,35 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         filtered_advice = filter_advice(advice_df, scores)
         export_advice(filtered_advice, filename=f"advice/{model_name}.csv", text_filename=f"advice/{model_name}.txt")
 
+    l_loss_mean, l_loss_ci95 = calculate_mean_ci95(lLoss_values)
+    db_loss_mean, db_loss_ci95 = calculate_mean_ci95(dbLoss_values)
+    nb_loss_mean, nb_loss_ci95 = calculate_mean_ci95(nbLoss_values)
+
+    print(
+        f"[LOSS_SUMMARY_95CI] L={l_loss_mean:.6f}+/-{l_loss_ci95:.6f}, "
+        f"DB={db_loss_mean:.6f}+/-{db_loss_ci95:.6f}, "
+        f"NB={nb_loss_mean:.6f}+/-{nb_loss_ci95:.6f}"
+    )
+    print("Loss summary (mean +/- 95% CI):")
+    print(f"  L  loss: {l_loss_mean:.6f} +/- {l_loss_ci95:.6f}")
+    print(f"  DB loss: {db_loss_mean:.6f} +/- {db_loss_ci95:.6f}")
+    print(f"  NB loss: {nb_loss_mean:.6f} +/- {nb_loss_ci95:.6f}")
+
     # Return results for multiple runs functionality
     return {
+        "fight_count": action_values.count(Action.Fight.value),
+        "flee_count": action_values.count(Action.Flee.value),
+        "befriend_count": action_values.count(Action.Befriend.value),
+        "chase_count": action_values.count(Action.Chase.value),
+        "cry_count": action_values.count(Action.Cry.value),
+        "fight_exploit_count": len(fight_exploit_values),
+        "flee_exploit_count": len(flee_exploit_values),
+        "befriend_exploit_count": len(befriend_exploit_values),
+        "chase_exploit_count": len(chase_exploit_values),
+        "cry_exploit_count": len(cry_exploit_values),
+        "threat_count": sit_types.count(SituationType.Threat.value),
+        "ally_count": sit_types.count(SituationType.Ally.value),
+        "prey_count": sit_types.count(SituationType.Prey.value),
         "boredom_maladaptive": len(boredom_maladaptive_values),
         "learned_helplessness": len(learned_helplessness_values),
         "apathy": len(apathy_values),
@@ -806,7 +937,13 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         "dangerous_trust": len(dangerous_trust_values),
         "over_friendliness": len(over_friendliness_values),
         "hopefulness": len(hopefulness_values),
-        "cynical": len(cynical_values)
+        "cynical": len(cynical_values),
+        "l_loss_mean": l_loss_mean,
+        "l_loss_ci95": l_loss_ci95,
+        "db_loss_mean": db_loss_mean,
+        "db_loss_ci95": db_loss_ci95,
+        "nb_loss_mean": nb_loss_mean,
+        "nb_loss_ci95": nb_loss_ci95
     }
 
 # Create the main Tkinter window
@@ -1069,6 +1206,10 @@ def save_model():
 
     try:
         agent.save_models(name)
+
+        # Update mainB_entry with current value from dropdown before saving
+        mainB_entry.delete(0, tk.END)
+        mainB_entry.insert(0, mainB_var.get())
 
         # Save stats to file
         agent.save_training_stats(stats_entries, folder_name=name)

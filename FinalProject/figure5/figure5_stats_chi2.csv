@@ -1,6 +1,0 @@
-behavior_key,behavior,chi2,p_value_raw,dof,cramers_v,significant_0_05,p_value_holm,significant_holm_0_05
-bully_behavior,Misdirected Aggression,50.026666666666664,1.370400029564186e-11,2,0.20417857108151405,True,4.1112000886925585e-11,True
-aggressive_withdrawn_relationship,Relational Aggression,2.48,0.28938421793905067,2,0.045460605656619524,False,0.28938421793905067,False
-dangerous_trust,Dangerous Trust,120.02666666666667,8.640532194511055e-27,2,0.3162629004834779,True,3.456212877804422e-26,True
-fearful_withdrawn_relationship,Hypervigilant Withdrawal,43.62666666666667,3.3619380107402814e-10,2,0.19067132861433456,True,6.723876021480563e-10,True
-negative_expectancy_combo,Negative Expectancy,178.58666666666664,1.6611087372753734e-39,2,0.3857748335781149,True,8.305543686376866e-39,True

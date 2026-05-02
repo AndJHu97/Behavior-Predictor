@@ -1,5 +1,0 @@
-action,analysis,role_main_wald,role_main_p,condition_main_wald,condition_main_p,interaction_wald,interaction_p,n_runs,n_clusters
-fight_count,effect_tests,1.8126306058740202e+32,0.0,2.4106090462668927e+31,0.0,5.32093313507905e+30,0.0,1200,6
-flee_count,effect_tests,4.368635153955674e+32,0.0,5.900539686991421e+30,0.0,3.565332219721656e+32,0.0,1200,6
-cry_count,effect_tests,1.2262112695699254e+32,0.0,2.14707431444162e+29,0.0,5.635868899129657e+31,0.0,1200,6
-chase_count,effect_tests,2.732135286900136e+32,0.0,9.508728106657925e+32,0.0,9.270059421747041e+32,0.0,1200,6

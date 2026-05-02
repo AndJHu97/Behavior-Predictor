@@ -1,0 +1,6 @@
+behavior_key,behavior,threshold_percentile,threshold_percent,threshold_pool
+protective_behavior,Protective Behavior,75.0,7.091133199926835,NB+DB
+healthy_friendliness,Healthy Friendliness,75.0,14.57509021484314,NB+DB
+willingness_to_flee,Adaptive Avoidance,75.0,10.929672899190141,NB+DB
+community_trusting_vulnerability,Help-Seeking Vulnerability,75.0,3.2508742608217043,NB+DB
+hopefulness,Positive Expectancy,75.0,88.61700772779747,NB+DB

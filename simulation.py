@@ -139,18 +139,34 @@ def calculate_statistics(all_results):
     """Calculate total, mean, and standard deviation for each metric"""
     if not all_results:
         return {}
-    
-    metrics = all_results[0].keys()
+    # exclude non-numeric/compound results (like per-step 'series')
+    metrics = [k for k in all_results[0].keys() if k != 'series']
     stats = {}
     
     for metric in metrics:
-        values = [result[metric] for result in all_results]
+        # collect numeric values only; coerce when possible
+        raw_values = [result.get(metric) for result in all_results]
+        numeric_vals = []
+        for v in raw_values:
+            try:
+                # allow numpy numeric types too
+                if v is None:
+                    continue
+                numeric_vals.append(float(v))
+            except Exception:
+                # skip non-numeric entries
+                pass
+
+        if not numeric_vals:
+            stats[metric] = {'total': 0, 'mean': 0.0, 'std': 0.0, 'min': None, 'max': None}
+            continue
+
         stats[metric] = {
-            'total': sum(values),
-            'mean': np.mean(values),
-            'std': np.std(values),
-            'min': min(values),
-            'max': max(values)
+            'total': sum(numeric_vals),
+            'mean': float(np.mean(numeric_vals)),
+            'std': float(np.std(numeric_vals)),
+            'min': min(numeric_vals),
+            'max': max(numeric_vals)
         }
     
     return stats
@@ -303,6 +319,112 @@ def display_multiple_runs_results(all_results, stats, model_name, parameters):
     export_button = tk.Button(results_window, text="Export to CSV", command=export_to_csv)
     export_button.pack(pady=5)
 
+    def export_series_csv():
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"multiple_runs_series_{model_name}_{timestamp}.csv"
+
+        try:
+            # collect series from each run
+            runs_series = [r.get('series') for r in all_results if isinstance(r.get('series'), dict)]
+            if not runs_series:
+                messagebox.showwarning("No Data", "No per-step series data found in runs.")
+                return
+
+            episodes = max(s.get('episodes', 0) for s in runs_series)
+
+            # build headers
+            header = ['step']
+            for i in range(len(runs_series)):
+                header += [f'run{i+1}_action', f'run{i+1}_l_loss', f'run{i+1}_db_loss', f'run{i+1}_nb_loss', f'run{i+1}_l_reward', f'run{i+1}_db_reward', f'run{i+1}_nb_reward']
+
+            # aggregated columns
+            agg_cols = [
+                'l_loss_mean', 'l_loss_ci95',
+                'db_loss_mean', 'db_loss_ci95',
+                'nb_loss_mean', 'nb_loss_ci95',
+                'collective_loss_mean', 'collective_loss_ci95',
+                'l_reward_mean', 'l_reward_ci95',
+                'db_reward_mean', 'db_reward_ci95',
+                'nb_reward_mean', 'nb_reward_ci95',
+                'collective_reward_mean', 'collective_reward_ci95'
+            ]
+            header += agg_cols
+
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(header)
+
+                for step in range(episodes):
+                    row = [step]
+                    # per-run values
+                    action_step_vals = []
+                    l_loss_step_vals = []
+                    db_loss_step_vals = []
+                    nb_loss_step_vals = []
+                    l_reward_step_vals = []
+                    db_reward_step_vals = []
+                    nb_reward_step_vals = []
+
+                    for s in runs_series:
+                        # fetch values if available, else np.nan
+                        def get_val(arr_name):
+                            arr = s.get(arr_name, [])
+                            return arr[step] if step < len(arr) else np.nan
+
+                        aval = get_val('action')
+                        lval = get_val('l_loss')
+                        dbval = get_val('db_loss')
+                        nbval = get_val('nb_loss')
+                        lrval = get_val('l_reward')
+                        dbrval = get_val('db_reward')
+                        nbrval = get_val('nb_reward')
+
+                        row += [aval, lval, dbval, nbval, lrval, dbrval, nbrval]
+
+                        action_step_vals.append(float(aval) if not (isinstance(aval, str) or np.isnan(aval)) else np.nan)
+
+                        l_loss_step_vals.append(float(lval) if not (isinstance(lval, str) or np.isnan(lval)) else np.nan)
+                        db_loss_step_vals.append(float(dbval) if not (isinstance(dbval, str) or np.isnan(dbval)) else np.nan)
+                        nb_loss_step_vals.append(float(nbval) if not (isinstance(nbval, str) or np.isnan(nbval)) else np.nan)
+                        l_reward_step_vals.append(float(lrval) if not (isinstance(lrval, str) or np.isnan(lrval)) else np.nan)
+                        db_reward_step_vals.append(float(dbrval) if not (isinstance(dbrval, str) or np.isnan(dbrval)) else np.nan)
+                        nb_reward_step_vals.append(float(nbrval) if not (isinstance(nbrval, str) or np.isnan(nbrval)) else np.nan)
+
+                    # compute per-type aggregates
+                    l_mean, l_ci = calculate_mean_ci95(l_loss_step_vals)
+                    db_mean, db_ci = calculate_mean_ci95(db_loss_step_vals)
+                    nb_mean, nb_ci = calculate_mean_ci95(nb_loss_step_vals)
+
+                    lr_mean, lr_ci = calculate_mean_ci95(l_reward_step_vals)
+                    dbr_mean, dbr_ci = calculate_mean_ci95(db_reward_step_vals)
+                    nbr_mean, nbr_ci = calculate_mean_ci95(nb_reward_step_vals)
+
+                    # collective across types (flatten all loss values and all reward values)
+                    all_loss_vals = [v for v in (l_loss_step_vals + db_loss_step_vals + nb_loss_step_vals) if not (isinstance(v, str) or np.isnan(v))]
+                    all_reward_vals = [v for v in (l_reward_step_vals + db_reward_step_vals + nb_reward_step_vals) if not (isinstance(v, str) or np.isnan(v))]
+                    coll_loss_mean, coll_loss_ci = calculate_mean_ci95(all_loss_vals)
+                    coll_reward_mean, coll_reward_ci = calculate_mean_ci95(all_reward_vals)
+
+                    row += [
+                        l_mean, l_ci,
+                        db_mean, db_ci,
+                        nb_mean, nb_ci,
+                        coll_loss_mean, coll_loss_ci,
+                        lr_mean, lr_ci,
+                        dbr_mean, dbr_ci,
+                        nbr_mean, nbr_ci,
+                        coll_reward_mean, coll_reward_ci
+                    ]
+
+                    writer.writerow(row)
+
+            messagebox.showinfo("Success", f"Series exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export series: {str(e)}")
+
+    export_series_button = tk.Button(results_window, text="Export Series CSV", command=export_series_csv)
+    export_series_button.pack(pady=5)
+
 
 def start_simulation():
     # Get the values from the Tkinter fields
@@ -399,6 +521,9 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
     action_values = []
     survival_rounds_values = []
     rewards_values = []
+    lRewards_values = []
+    dbRewards_values = []
+    nbRewards_values = []
     nbLoss_values = []
     dbLoss_values = []
     lLoss_values = []
@@ -455,6 +580,11 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         blStore = []
         lReward, dbReward, nbReward, death, survival_rounds = situation.process_action(character, action)
         survival_rounds_values.append(survival_rounds)
+        # store per-step rewards for each objective
+        lRewards_values.append(lReward)
+        dbRewards_values.append(dbReward)
+        nbRewards_values.append(nbReward)
+        # legacy single rewards list (keeps previous behavior)
         rewards_values.append(dbReward)
         blStore = agent.train_short_memory(state, action, lReward, dbReward, nbReward)
         lLoss_values.append(blStore[0])
@@ -943,7 +1073,17 @@ def main(prob_threat, prob_ally, prob_prey, tLowerSitL, tHigherSitL, tLowerSitDB
         "db_loss_mean": db_loss_mean,
         "db_loss_ci95": db_loss_ci95,
         "nb_loss_mean": nb_loss_mean,
-        "nb_loss_ci95": nb_loss_ci95
+        "nb_loss_ci95": nb_loss_ci95,
+        "series": {
+            "l_loss": lLoss_values,
+            "db_loss": dbLoss_values,
+            "nb_loss": nbLoss_values,
+            "l_reward": lRewards_values,
+            "db_reward": dbRewards_values,
+            "nb_reward": nbRewards_values,
+            "action": action_values,
+            "episodes": len(lLoss_values)
+        }
     }
 
 # Create the main Tkinter window

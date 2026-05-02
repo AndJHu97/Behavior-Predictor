@@ -1,0 +1,26 @@
+Figure 7B protective factor analysis summary
+========================================================================
+Input files found: 1
+Valid runs analyzed: 1000
+Threshold from Figure 7A: 2.037873%
+Resilient runs: 296
+Vulnerable runs: 704
+
+Panel A (Healthy friendliness %):
+  Regression slope: -1.371744
+  Pearson r: -0.909535, R^2: 0.827254, p: 0
+  Spearman rho: -0.844858, p: 2.31527e-273
+  Group test: mann_whitney_u, stat: 201803.500000, p: 2.98485e-121
+
+Panel B (Help-seeking vulnerability %):
+  Regression slope: -0.000005
+  Pearson r: -0.003649, R^2: 0.000013, p: 0.908238
+  Spearman rho: 0.005268, p: 0.867861
+  Group test: mann_whitney_u, stat: 103481.000000, p: 0.418284
+
+Output files:
+  Figure: FinalProject\figure7\figure7B_protective_factors_vs_lh.png
+  Raw table: FinalProject\figure7\figure7B_raw_run_protective_factors.csv
+  Correlation and regression stats: FinalProject\figure7\figure7B_correlation_regression.csv
+  Group-difference stats: FinalProject\figure7\figure7B_group_difference_tests.csv
+  Skipped-file log: FinalProject\figure7\figure7B_skipped_files.csv

@@ -1,0 +1,7 @@
+agent_type,condition,relationship,n_runs,spearman_rho,p_value
+DB,LowThreat,late_window_loss_entropy_spearman,200,0.21290180886328794,0.0024716375807283886
+DB,ModerateThreat,late_window_loss_entropy_spearman,200,0.15712400385245254,0.026285960254375774
+DB,HighThreat,late_window_loss_entropy_spearman,200,0.8162276760515232,4.589399202499762e-49
+NB,LowThreat,late_window_loss_entropy_spearman,200,0.3176413101482674,4.5785661674877015e-06
+NB,ModerateThreat,late_window_loss_entropy_spearman,200,0.27974349358733974,6.026675800204543e-05
+NB,HighThreat,late_window_loss_entropy_spearman,200,0.8053199528925712,7.719843791891944e-47

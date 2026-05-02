@@ -1,0 +1,23 @@
+Figure 7C maladaptive emergence by group summary
+========================================================================
+Input files found: 1
+Valid runs analyzed: 1000
+Threshold from Figure 7A: 2.037873%
+Resilient runs: 296
+Vulnerable runs: 704
+
+Primary test (MANOVA) on 3 maladaptive complex behaviors:
+  Wilks lambda: 0.24266670200490703
+  F value: 1036.131668898218
+  p value: 1.1919361170537333e-305
+
+Follow-up tests saved with Holm-Bonferroni and FDR-BH corrections.
+
+Output files:
+  Figure: FinalProject\figure7\figure7C_maladaptive_emergence_violin.png
+  Raw run table: FinalProject\figure7\figure7C_raw_run_percentages.csv
+  Descriptive stats: FinalProject\figure7\figure7C_descriptive_stats.csv
+  Follow-up tests: FinalProject\figure7\figure7C_followup_tests.csv
+  MANOVA text: FinalProject\figure7\figure7C_manova_results.txt
+  MANOVA metrics: FinalProject\figure7\figure7C_manova_metrics.csv
+  Skipped-file log: FinalProject\figure7\figure7C_skipped_files.csv

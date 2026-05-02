@@ -1,6 +1,0 @@
-behavior_key,behavior,threshold_percentile,threshold_percent,threshold_pool
-fearful_withdrawn_relationship,Hypervigilant Withdrawal,75.0,5.735213760489653,NB+DB
-dangerous_trust,Dangerous Trust,75.0,1.8528657455946804,NB+DB
-bully_behavior,Misdirected Aggression,75.0,17.99305250471624,NB+DB
-aggressive_withdrawn_relationship,Relational Aggression,75.0,14.82946840699907,NB+DB
-negative_expectancy_combo,Negative Expectancy,75.0,19.213049559459066,NB+DB

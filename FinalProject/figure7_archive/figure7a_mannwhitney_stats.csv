@@ -1,2 +1,0 @@
-condition,n_resilient,n_vulnerable,resilient_mean_lh_pct,vulnerable_mean_lh_pct,u_statistic,p_value,significant_0_05,cohens_d
-ACE,67,67,0.7823438203691382,26.995454865199584,0.0,1.1098355524053622e-23,True,14.011950636616998

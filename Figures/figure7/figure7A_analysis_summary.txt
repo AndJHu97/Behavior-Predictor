@@ -1,0 +1,32 @@
+Figure 7A learned helplessness latent subgroup analysis
+========================================================================
+Input files parsed: 1
+Valid runs analyzed: 1000
+
+Model fit comparison:
+  1-component: AIC=7606.306, BIC=7616.122, LogLik=-3801.153
+  2-component: AIC=6433.400, BIC=6457.939, LogLik=-3211.700
+  Preferred by AIC/BIC/LogLik rule: True
+
+Two-component parameters:
+  Low component mean=0.428, std=0.520, weight=0.295
+  High component mean=19.978, std=7.310, weight=0.705
+  Separation metric S=|mu1-mu2|/(sigma1+sigma2)=2.497 (clear_separation)
+
+Posterior threshold:
+  Threshold at posterior(high component) ~= 0.5: 2.038%
+  Posterior(high) at threshold grid point: 0.501
+
+Latent subgroup counts:
+  Resilient (below threshold): 296 runs
+  Vulnerable (at/above threshold): 704 runs
+
+Output files:
+  Figure: FinalProject\figure7\figure7A_learned_helplessness_latent_split.png
+  Raw run table: FinalProject\figure7\figure7A_raw_run_percentages.csv
+  Model comparison: FinalProject\figure7\figure7A_model_comparison.csv
+  Model decision: FinalProject\figure7\figure7A_model_decision.csv
+  Component table: FinalProject\figure7\figure7A_gmm_components.csv
+  Threshold table: FinalProject\figure7\figure7A_threshold_analysis.csv
+  Subgroup summary: FinalProject\figure7\figure7A_subgroup_summary.csv
+  Skipped-file log: FinalProject\figure7\figure7A_skipped_files.csv

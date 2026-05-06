@@ -1,0 +1,28 @@
+behavior,cluster,comparison,statistic,p_value_raw,p_value_holm,significant,n_1,n_2
+healthy_friendliness,Affiliative,Standard Allies vs Strong Allies,14581.0,3.85631778781447e-08,6.555740239284598e-07,True,206,206
+healthy_friendliness,Affiliative,Standard Allies vs Standard Allies (ACE),17834.0,0.00506490963917044,0.06077891567004528,False,206,206
+healthy_friendliness,Affiliative,Strong Allies vs Standard Allies (ACE),25148.5,0.00114070001570757,0.01482910020419841,True,206,206
+community_trusting_vulnerability,Affiliative,Standard Allies vs Strong Allies,19636.5,0.16365888701174547,0.6546355480469819,False,206,206
+community_trusting_vulnerability,Affiliative,Standard Allies vs Standard Allies (ACE),31201.0,3.8679849523519563e-26,8.122768399939108e-25,True,206,206
+community_trusting_vulnerability,Affiliative,Strong Allies vs Standard Allies (ACE),31879.0,1.4339320427318923e-28,3.298043698283352e-27,True,206,206
+protective_behavior,Affiliative,Standard Allies vs Strong Allies,21309.0,0.9403058895266273,1.0,False,206,206
+protective_behavior,Affiliative,Standard Allies vs Standard Allies (ACE),23643.5,0.044792509243364934,0.4171165411752261,False,206,206
+protective_behavior,Affiliative,Strong Allies vs Standard Allies (ACE),23537.5,0.05499877968071227,0.43831700604981166,False,206,206
+fearful_withdrawn_relationship,Internalizing,Standard Allies vs Strong Allies,23407.5,0.0227987275879498,0.25078600346744784,False,206,206
+fearful_withdrawn_relationship,Internalizing,Standard Allies vs Standard Allies (ACE),24947.5,7.394156392691333e-05,0.0011091234589037,True,206,206
+fearful_withdrawn_relationship,Internalizing,Strong Allies vs Standard Allies (ACE),22391.0,0.17005139954751536,0.6546355480469819,False,206,206
+willingness_to_flee,Internalizing,Standard Allies vs Strong Allies,19215.5,0.09466601211571819,0.5679960726943092,False,206,206
+willingness_to_flee,Internalizing,Standard Allies vs Standard Allies (ACE),2831.0,1.951678773248059e-52,4.684029055795342e-51,True,206,206
+willingness_to_flee,Internalizing,Strong Allies vs Standard Allies (ACE),2475.5,2.5176913764614832e-54,6.294228441153708e-53,True,206,206
+learned_helplessness,Internalizing,Standard Allies vs Strong Allies,21218.0,1.0,1.0,False,206,206
+learned_helplessness,Internalizing,Standard Allies vs Standard Allies (ACE),3090.0,3.26713003535882e-62,8.821251095468813e-61,True,206,206
+learned_helplessness,Internalizing,Strong Allies vs Standard Allies (ACE),3090.0,3.26713003535882e-62,8.821251095468813e-61,True,206,206
+bully_behavior,Externalizing,Standard Allies vs Strong Allies,26431.0,1.6094515116656963e-05,0.0002575122418665114,True,206,206
+bully_behavior,Externalizing,Standard Allies vs Standard Allies (ACE),34237.0,4.651067122962401e-27,1.0232347670517283e-25,True,206,206
+bully_behavior,Externalizing,Strong Allies vs Standard Allies (ACE),23232.5,0.09561189727215291,0.5679960726943092,False,206,206
+aggressive_withdrawn_relationship,Externalizing,Standard Allies vs Strong Allies,27907.0,3.121224604919749e-08,5.618204288855548e-07,True,206,206
+aggressive_withdrawn_relationship,Externalizing,Standard Allies vs Standard Allies (ACE),23679.5,0.04171165411752261,0.4171165411752261,False,206,206
+aggressive_withdrawn_relationship,Externalizing,Strong Allies vs Standard Allies (ACE),16944.0,0.00040597320978719744,0.005683624937020764,True,206,206
+dangerous_trust,Externalizing,Standard Allies vs Strong Allies,18896.5,0.05478962575622646,0.43831700604981166,False,206,206
+dangerous_trust,Externalizing,Standard Allies vs Standard Allies (ACE),29765.0,1.5281577694837152e-12,2.903499762019059e-11,True,206,206
+dangerous_trust,Externalizing,Strong Allies vs Standard Allies (ACE),30890.5,1.212084114164522e-15,2.424168228329044e-14,True,206,206

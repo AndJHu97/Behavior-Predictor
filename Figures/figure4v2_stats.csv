@@ -1,0 +1,31 @@
+cluster,agent_type,test_type,comparison,statistic,p_value,significant
+Affiliative,DB,Kruskal-Wallis,Across 3 conditions,25.185564626672647,3.3964414277902985e-06,True
+Affiliative,DB,Dunn (Holm),ACE vs Moderate,15886.5,3.0839316606977466e-05,True
+Affiliative,DB,Dunn (Holm),ACE vs No ACE,16052.5,3.8426203102311026e-05,True
+Affiliative,DB,Dunn (Holm),Moderate vs No ACE,21372.0,0.8989281140806468,False
+Internalizing,DB,Kruskal-Wallis,Across 3 conditions,373.76264653937056,6.894019908051631e-82,True
+Internalizing,DB,Dunn (Holm),ACE vs Moderate,40958.5,1.077489702401421e-59,True
+Internalizing,DB,Dunn (Holm),ACE vs No ACE,41553.5,4.114126435595132e-63,True
+Internalizing,DB,Dunn (Holm),Moderate vs No ACE,25508.0,0.000375032805716284,True
+Externalizing,DB,Kruskal-Wallis,Across 3 conditions,308.7455262535667,9.052339176108459e-68,True
+Externalizing,DB,Dunn (Holm),ACE vs Moderate,3211.5,6.661645809090533e-50,True
+Externalizing,DB,Dunn (Holm),ACE vs No ACE,2476.5,9.263016520850896e-54,True
+Externalizing,DB,Dunn (Holm),Moderate vs No ACE,20611.0,0.6157687378252705,False
+Affiliative,NB,Kruskal-Wallis,Across 3 conditions,10.708475679168009,0.004728071673686879,True
+Affiliative,NB,Dunn (Holm),ACE vs Moderate,24628.5,0.013400492393118284,True
+Affiliative,NB,Dunn (Holm),ACE vs No ACE,24654.5,0.013400492393118284,True
+Affiliative,NB,Dunn (Holm),Moderate vs No ACE,21197.5,0.9867962065428991,False
+Internalizing,NB,Kruskal-Wallis,Across 3 conditions,2.9482017517604606,0.22898452001964856,False
+Externalizing,NB,Kruskal-Wallis,Across 3 conditions,84.60784592835144,4.242674304932071e-19,True
+Externalizing,NB,Dunn (Holm),ACE vs Moderate,11083.5,1.515124044499736e-16,True
+Externalizing,NB,Dunn (Holm),ACE vs No ACE,12114.5,9.963225584640839e-14,True
+Externalizing,NB,Dunn (Holm),Moderate vs No ACE,20220.0,0.40914768731517037,False
+Affiliative,DB vs NB,Mann-Whitney U,No ACE,2234.5,1.3389622929497294e-55,True
+Internalizing,DB vs NB,Mann-Whitney U,No ACE,186.5,6.888550433250619e-68,True
+Externalizing,DB vs NB,Mann-Whitney U,No ACE,42231.0,1.0340100514753736e-67,True
+Affiliative,DB vs NB,Mann-Whitney U,Moderate,2288.0,2.688827830794103e-55,True
+Internalizing,DB vs NB,Mann-Whitney U,Moderate,192.0,8.12935382804754e-68,True
+Externalizing,DB vs NB,Mann-Whitney U,Moderate,42231.0,1.0340100514753736e-67,True
+Affiliative,DB vs NB,Mann-Whitney U,ACE,8209.5,5.111338578148632e-27,True
+Internalizing,DB vs NB,Mann-Whitney U,ACE,11363.5,3.526095840852014e-16,True
+Externalizing,DB vs NB,Mann-Whitney U,ACE,42228.5,1.0718352200508439e-67,True

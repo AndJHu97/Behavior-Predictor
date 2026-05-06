@@ -1,0 +1,7 @@
+cluster,agent_type,comparison,statistic,p_value_raw,p_value_holm,significant,n_standard,n_strong
+Affiliative,DB,Standard Allies vs Strong Allies,10366.0,2.727128176706367e-19,5.454256353412734e-19,True,206,206
+Internalizing,DB,Standard Allies vs Strong Allies,19248.0,0.10228534095380577,0.10228534095380577,False,206,206
+Externalizing,DB,Standard Allies vs Strong Allies,32268.5,6.048402761497663e-20,1.814520828449299e-19,True,206,206
+Affiliative,NB,Standard Allies vs Strong Allies,23001.5,0.14011420051791706,0.4203426015537512,False,206,206
+Internalizing,NB,Standard Allies vs Strong Allies,20181.5,0.39130585571744214,0.7826117114348843,False,206,206
+Externalizing,NB,Standard Allies vs Strong Allies,21462.0,0.8403175992989226,0.8403175992989226,False,206,206

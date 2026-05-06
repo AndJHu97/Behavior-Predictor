@@ -1,0 +1,7 @@
+source_path,reason
+multiple_runs_series_DB_HighThreat_Series_20260501_214557.csv,Missing or invalid Run table for required behavior columns
+multiple_runs_series_DB_LowThreat_Series_20260502_024924.csv,Missing or invalid Run table for required behavior columns
+multiple_runs_series_DB_ModerateThreat_Series_20260501_231143.csv,Missing or invalid Run table for required behavior columns
+multiple_runs_series_NB_HighThreat_Series_20260501_201652.csv,Missing or invalid Run table for required behavior columns
+multiple_runs_series_NB_LowThreat_Series_20260501_180725.csv,Missing or invalid Run table for required behavior columns
+multiple_runs_series_NB_ModerateThreat_Series_20260501_185729.csv,Missing or invalid Run table for required behavior columns

@@ -1,0 +1,13 @@
+Figure 3v2 heatmap analysis summary
+========================================================================
+Parsed run files: 12
+Valid runs analyzed: 1200
+DB runs: 600
+NB runs: 600
+
+Outputs:
+  Figure: C:\Users\Andre\Projects\PersonalityPredictor\Behavior-Predictor\Figures\figure3v2_heatmap.png
+  Raw run table: C:\Users\Andre\Projects\PersonalityPredictor\Behavior-Predictor\Figures\figure3v2_raw_run_percentages.csv
+  Heatmap summary: C:\Users\Andre\Projects\PersonalityPredictor\Behavior-Predictor\Figures\figure3v2_heatmap_summary.csv
+  MANOVA results: C:\Users\Andre\Projects\PersonalityPredictor\Behavior-Predictor\Figures\figure3v2_manova_results.csv
+  Skipped-file log: C:\Users\Andre\Projects\PersonalityPredictor\Behavior-Predictor\Figures\figure3v2_skipped_files.csv

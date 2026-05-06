@@ -1,0 +1,28 @@
+behavior,cluster,comparison,statistic,p_value_raw,p_value_holm,significant,n_1,n_2
+healthy_friendliness,Affiliative,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),13177.0,2.7948034901755226e-11,5.589606980351045e-10,True,206,206
+healthy_friendliness,Affiliative,Standard Allies (Moderate Threat) vs ACE Standard Allies,18399.0,0.019610197646017877,0.19610197646017877,False,206,206
+healthy_friendliness,Affiliative,Strong Allies (Moderate Threat) vs ACE Standard Allies,26548.5,1.0236990704194764e-05,0.00013308087915453194,True,206,206
+community_trusting_vulnerability,Affiliative,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),20213.5,0.38086796890435914,1.0,False,206,206
+community_trusting_vulnerability,Affiliative,Standard Allies (Moderate Threat) vs ACE Standard Allies,31982.5,6.191610688580737e-29,1.362154351487762e-27,True,206,206
+community_trusting_vulnerability,Affiliative,Strong Allies (Moderate Threat) vs ACE Standard Allies,32202.5,9.783188445541585e-30,2.2501333424745647e-28,True,206,206
+protective_behavior,Affiliative,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),21033.5,0.8789872937604726,1.0,False,206,206
+protective_behavior,Affiliative,Standard Allies (Moderate Threat) vs ACE Standard Allies,23772.5,0.03457171270269405,0.2765737016215524,False,206,206
+protective_behavior,Affiliative,Strong Allies (Moderate Threat) vs ACE Standard Allies,24928.0,0.0021443692993843035,0.023588062293227338,True,206,206
+fearful_withdrawn_relationship,Internalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),25740.5,4.246218467149313e-06,6.369327700723968e-05,True,206,206
+fearful_withdrawn_relationship,Internalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,26776.5,1.5805527560029512e-08,3.0030502364056074e-07,True,206,206
+fearful_withdrawn_relationship,Internalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,21614.5,0.6316666496118399,1.0,False,206,206
+willingness_to_flee,Internalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),19093.0,0.07744391498871886,0.46466348993231316,False,206,206
+willingness_to_flee,Internalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,4264.0,9.104717671745249e-45,2.276179417936312e-43,True,206,206
+willingness_to_flee,Internalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,5578.5,2.44096669938458e-38,5.858320078522992e-37,True,206,206
+learned_helplessness,Internalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),21218.0,1.0,1.0,False,206,206
+learned_helplessness,Internalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,3090.0,3.26713003535882e-62,8.821251095468813e-61,True,206,206
+learned_helplessness,Internalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,3090.0,3.26713003535882e-62,8.821251095468813e-61,True,206,206
+bully_behavior,Externalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),26683.5,6.1233884024738325e-06,8.572743763463365e-05,True,206,206
+bully_behavior,Externalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,33566.5,1.6553988602671803e-24,3.476337606561079e-23,True,206,206
+bully_behavior,Externalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,23719.0,0.03853946191229511,0.2765737016215524,False,206,206
+aggressive_withdrawn_relationship,Externalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),27727.0,7.220672468213424e-08,1.2997210442784163e-06,True,206,206
+aggressive_withdrawn_relationship,Externalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,24012.0,0.02080431038442347,0.19610197646017877,False,206,206
+aggressive_withdrawn_relationship,Externalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,16923.5,0.00038063538329158845,0.004567624599499062,True,206,206
+dangerous_trust,Externalizing,Standard Allies (Moderate Threat) vs Strong Allies (Moderate Threat),19796.0,0.23949968501458352,1.0,False,206,206
+dangerous_trust,Externalizing,Standard Allies (Moderate Threat) vs ACE Standard Allies,27461.5,2.3934876690665714e-07,4.068929037413171e-06,True,206,206
+dangerous_trust,Externalizing,Strong Allies (Moderate Threat) vs ACE Standard Allies,27396.0,3.193551910668536e-07,5.109683057069658e-06,True,206,206

@@ -1,0 +1,10 @@
+behavior,cluster,kw_stat,kw_p,n_standard,n_strong,n_ace
+healthy_friendliness,Affiliative,46.19566044935292,9.305501628985257e-11,206,206,206
+community_trusting_vulnerability,Affiliative,144.44723575767458,4.302107835828266e-32,206,206,206
+protective_behavior,Affiliative,9.140895875702734,0.010353321034391707,206,206,206
+fearful_withdrawn_relationship,Internalizing,38.88372533387345,3.60168996491143e-09,206,206,206
+willingness_to_flee,Internalizing,245.67397011067968,4.493401405703753e-54,206,206,206
+learned_helplessness,Internalizing,473.46986923285834,1.539303377726088e-103,206,206,206
+bully_behavior,Externalizing,83.23999051780767,8.407477664251073e-19,206,206,206
+aggressive_withdrawn_relationship,Externalizing,31.295164323269923,1.6008159841253839e-07,206,206,206
+dangerous_trust,Externalizing,35.8309175231595,1.657353382866046e-08,206,206,206

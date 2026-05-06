@@ -1,0 +1,10 @@
+behavior,cluster,comparison,statistic,p_value_raw,p_value_holm,significant,n_standard,n_strong
+healthy_friendliness,Affiliative,Standard Allies vs Strong Allies,14581.0,3.85631778781447e-08,3.085054230251576e-07,True,206,206
+community_trusting_vulnerability,Affiliative,Standard Allies vs Strong Allies,19636.5,0.16365888701174547,0.4909766610352364,False,206,206
+protective_behavior,Affiliative,Standard Allies vs Strong Allies,21309.0,0.9403058895266273,1.0,False,206,206
+fearful_withdrawn_relationship,Internalizing,Standard Allies vs Strong Allies,23407.5,0.0227987275879498,0.1367923655276988,False,206,206
+willingness_to_flee,Internalizing,Standard Allies vs Strong Allies,19215.5,0.09466601211571819,0.37866404846287277,False,206,206
+learned_helplessness,Internalizing,Standard Allies vs Strong Allies,21218.0,1.0,1.0,False,206,206
+bully_behavior,Externalizing,Standard Allies vs Strong Allies,26431.0,1.6094515116656963e-05,0.00011266160581659875,True,206,206
+aggressive_withdrawn_relationship,Externalizing,Standard Allies vs Strong Allies,27907.0,3.121224604919749e-08,2.809102144427774e-07,True,206,206
+dangerous_trust,Externalizing,Standard Allies vs Strong Allies,18896.5,0.05478962575622646,0.2739481287811323,False,206,206

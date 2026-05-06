@@ -31,7 +31,7 @@ ADAPTIVE_BEHAVIOR_COLUMNS = [
     'protective_behavior',
     'healthy_friendliness',
     'hopefulness',
-    'positive_mindset',
+    'willingness_to_flee',
     'community_trusting_vulnerability',
 ]
 

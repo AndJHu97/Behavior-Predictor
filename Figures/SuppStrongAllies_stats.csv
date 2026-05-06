@@ -1,0 +1,19 @@
+cluster,agent_type,comparison,statistic,p_value_raw,p_value_holm,significant,n_standard,n_strong
+Affiliative,DB,Kruskal-Wallis across 3 conditions,115.92616266704351,6.713571564900439e-26,6.713571564900439e-26,True,0,0
+Affiliative,DB,Standard Allies vs Strong Allies,10366.0,2.727128176706367e-19,5.454256353412734e-19,True,206,206
+Affiliative,DB,Standard Allies vs Very Strong Allies,9657.0,1.1124717306380641e-21,3.337415191914192e-21,True,206,206
+Affiliative,DB,Strong Allies vs Very Strong Allies,19601.5,0.18116399088160573,0.18116399088160573,False,206,206
+Internalizing,DB,Kruskal-Wallis across 3 conditions,5.459166931853731,0.06524646138307963,0.06524646138307963,False,0,0
+Externalizing,DB,Kruskal-Wallis across 3 conditions,118.60637651648523,1.7577316799556563e-26,1.7577316799556563e-26,True,0,0
+Externalizing,DB,Standard Allies vs Strong Allies,32268.5,6.048402761497663e-20,1.2096805522995327e-19,True,206,206
+Externalizing,DB,Standard Allies vs Very Strong Allies,32851.5,6.217673433282903e-22,1.865302029984871e-21,True,206,206
+Externalizing,DB,Strong Allies vs Very Strong Allies,22802.5,0.18995884092780602,0.18995884092780602,False,206,206
+Affiliative,NB,Kruskal-Wallis across 3 conditions,4.223987959741602,0.12099646122701462,0.12099646122701462,False,0,0
+Internalizing,NB,Kruskal-Wallis across 3 conditions,7.896236677851595,0.019290966706667707,0.019290966706667707,True,0,0
+Internalizing,NB,Standard Allies vs Strong Allies,20181.5,0.39130585571744214,0.39130585571744214,False,206,206
+Internalizing,NB,Standard Allies vs Very Strong Allies,18039.5,0.00854661816982231,0.02563985450946693,True,206,206
+Internalizing,NB,Strong Allies vs Very Strong Allies,18739.0,0.04027994835031899,0.08055989670063798,False,206,206
+Externalizing,NB,Kruskal-Wallis across 3 conditions,22.11046923707583,1.5804203349435746e-05,1.5804203349435746e-05,True,0,0
+Externalizing,NB,Standard Allies vs Strong Allies,21462.0,0.8403175992989226,0.8403175992989226,False,206,206
+Externalizing,NB,Standard Allies vs Very Strong Allies,26472.0,1.3796388777622752e-05,4.1389166332868255e-05,True,206,206
+Externalizing,NB,Strong Allies vs Very Strong Allies,25779.0,0.00016088006311329808,0.00032176012622659616,True,206,206
